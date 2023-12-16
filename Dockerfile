@@ -6,9 +6,9 @@ RUN apt-get update \
     && pip install --no-cache-dir --upgrade pio
 
 WORKDIR /app
-COPY ./requirements.txt /app
+COPY requirements.txt /app
 RUN pip install --no-cache-dir --requirement app/requirements.txt
-COPY . /app
+COPY .. /app
 
 EXPOSE 5000
 

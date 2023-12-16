@@ -1,11 +1,18 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+import os
+from dotenv import load_dotenv
+
+# Carica le variabili di ambiente da .env
+load_dotenv()
 
 app = Flask(__name__)
 
+
 # Configurazione del database MySQL con SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost/weatherman'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 db = SQLAlchemy(app)
 
@@ -18,7 +25,7 @@ class User(db.Model):
 def home():
     return render_template('home.html')
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -27,7 +34,7 @@ def login():
         user = User.query.filter_by(username=username, password=password).first()
 
         if user:
-            return f'Benvenuto, {username}!'
+            return render_template('index.html')
         else:
             return 'Credenziali non valide. Riprova.'
 
