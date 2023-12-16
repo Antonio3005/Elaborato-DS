@@ -15,8 +15,8 @@ services:
 
   auth_service:
     build:
-      context: .
-      dockerfile: Dockerfile_auth
+      context: ./auth_service
+      dockerfile: Dockerfile
     container_name: auth_service
     environment:
       MYSQL_DATABASE: 'users'  # Utilizza lo stesso database 'auth' per il servizio auth
@@ -43,8 +43,8 @@ services:
 
   weather_service:
     build:
-      context: .
-      dockerfile: Dockerfile_weather
+      context: ./weather_service
+      dockerfile: Dockerfile
     container_name: weather_service
     environment:
       MYSQL_DATABASE: 'user_prefernces'  # Nuovo database per il servizio meteo

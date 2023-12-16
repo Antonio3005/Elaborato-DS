@@ -10,9 +10,8 @@ app = Flask(__name__)
 
 
 # Configurazione del database MySQL con SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root@localhost/users"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 db = SQLAlchemy(app)
 
