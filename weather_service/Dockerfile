@@ -1,5 +1,6 @@
 # Usa un'immagine di base con Python
-FROM python:3.10-alpine
+FROM python:3.11.5
+
 
 # Imposta il lavoro di lavoro nel container
 WORKDIR /weather_service
@@ -7,7 +8,7 @@ WORKDIR /weather_service
 RUN pip3 install --upgrade pip
 COPY choice_temp.py ./
 COPY requirements.txt ./
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 EXPOSE 5001
 

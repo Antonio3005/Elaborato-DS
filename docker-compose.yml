@@ -1,36 +1,65 @@
 version: '3'
 
 services:
-  mysql:
+  mysql_users:
     image: mysql:8.0
-    container_name: mysql
+    container_name: mysql_users
     environment:
-      MYSQL_ROOT_PASSWORD: ''
+      MYSQL_ROOT_PASSWORD: '12345'
+      MYSQL_DATABASE: 'users'  # Nome del database per il servizio auth
+      MYSQL_USER: 'an'
+      MYSQL_PASSWORD: '12345'
     ports:
       - "3306:3306"
     restart: always
 
   auth_service:
     build:
-      context: ./auth_service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile_auth
     container_name: auth_service
-    env_file:
-      - ./auth_service/.env
+    environment:
+      MYSQL_DATABASE: 'users'  # Utilizza lo stesso database 'auth' per il servizio auth
+      MYSQL_USER: 'an'
+      MYSQL_PASSWORD: '12345'
+      MYSQL_ROOT_PASSWORD: '12345'
     ports:
       - "5000:5000"
+    restart: always
     depends_on:
-      - mysql
+      - mysql_users
+
+  mysql_weather:
+    image: mysql:8.0
+    container_name: mysql_weather
+    environment:
+      MYSQL_ROOT_PASSWORD: '12345'
+      MYSQL_DATABASE: 'user_preferences'  # Nuovo database per il servizio meteo
+      MYSQL_USER: 'an'
+      MYSQL_PASSWORD: '12345'
+    ports:
+      - "3307:3306"
+    restart: always
 
   weather_service:
     build:
-      context: ./weather_service
-    env_file:
-        - ./weather_service/.env
+      context: .
+      dockerfile: Dockerfile_weather
+    container_name: weather_service
+    environment:
+      MYSQL_DATABASE: 'user_prefernces'  # Nuovo database per il servizio meteo
+      MYSQL_USER: 'an'
+      MYSQL_PASSWORD: '12345'
+      MYSQL_ROOT_PASSWORD: '12345'
     ports:
       - "5001:5001"
+    restart: always
     depends_on:
-      - auth_service
-      - mysql
+      - mysql_weather
+
+
+
+
+
 
 
