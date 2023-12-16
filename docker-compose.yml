@@ -4,8 +4,8 @@ services:
   mysql:
     image: mysql:8.0
     container_name: mysql
-    env_file:
-      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ''
     ports:
       - "3306:3306"
     restart: always
@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile
     container_name: auth_service
     env_file:
-      - .env
+      - ./auth_service/.env
     ports:
       - "5000:5000"
     depends_on:
@@ -26,7 +26,7 @@ services:
     build:
       context: ./weather_service
     env_file:
-        - .env
+        - ./weather_service/.env
     ports:
       - "5001:5001"
     depends_on:
