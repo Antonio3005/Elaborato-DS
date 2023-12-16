@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    restart: always
+
+  auth_service:
+    build:
+      context: ./auth_service
+      dockerfile: Dockerfile
+    container_name: auth_service
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mysql
+
+  weather_service:
+    build:
+      context: ./weather_service
+    env_file:
+        - .env
+    ports:
+      - "5001:5001"
+    depends_on:
+      - auth_service
+      - mysql
+
+
