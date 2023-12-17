@@ -8,6 +8,7 @@ WORKDIR /weather_service
 RUN pip3 install --upgrade pip
 COPY choice_temp.py ./
 COPY requirements.txt ./
+COPY templates /templates
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 EXPOSE 5001

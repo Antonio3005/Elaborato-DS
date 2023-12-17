@@ -7,12 +7,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+app.template_folder = 'templates'
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root@localhost/user_preferences"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
 
 class UserPreferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -22,8 +24,6 @@ class UserPreferences(db.Model):
     temp_min = db.Column(db.String(255), nullable=False)
     rain_amount = db.Column(db.String(255), nullable=False)
     snow_presence = db.Column(db.String(255), nullable=False)
-
-
 
 
 @app.route('/choice_temp', methods=['GET', 'POST'])
@@ -46,9 +46,10 @@ def choice_temp():
         return redirect(url_for('choice_temp'))
 
     # Ottieni tutte le preferenze utente dal database
-    #preferences = UserPreferences.query.all()
+    # preferences = UserPreferences.query.all()
 
-    return render_template('choice.html')#, preferences=preferences)
+    return render_template('choice.html')  # , preferences=preferences)
+
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, host='0.0.0.0', port=5001)
