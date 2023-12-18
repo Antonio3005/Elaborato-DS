@@ -12,7 +12,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./auth_service/users.sql:/docker-entrypoint-initdb.d/:ro
+      - ./users.sql:/docker-entrypoint-initdb.d/:ro
     restart: always
 
   auth_service:
@@ -42,7 +42,7 @@ services:
     ports:
       - "3307:3306"
     volumes:
-      - ./auth_service/user_preferences.sql:/docker-entrypoint-initdb.d/:ro
+      - ./user_preferences.sql:/docker-entrypoint-initdb.d/:ro
     restart: always
 
   weather_service:
