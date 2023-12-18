@@ -36,7 +36,7 @@ services:
     container_name: mysql_weather
     environment:
       MYSQL_ROOT_PASSWORD: '12345'
-      MYSQL_DATABASE: 'user_preferences'  # Nuovo database per il servizio meteo
+      MYSQL_DATABASE: 'user_preferences'  # Nuovo database per il serviziometeo
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
     ports:
