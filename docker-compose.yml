@@ -11,6 +11,8 @@ services:
       MYSQL_PASSWORD: '12345'
     ports:
       - "3306:3306"
+    volumes:
+      - ./auth_service/users.sql:/docker-entrypoint-initdb.d/:ro
     restart: always
 
   auth_service:
@@ -39,6 +41,8 @@ services:
       MYSQL_PASSWORD: '12345'
     ports:
       - "3307:3306"
+    volumes:
+      - ./auth_service/user_preferences.sql:/docker-entrypoint-initdb.d/:ro
     restart: always
 
   weather_service:
@@ -53,6 +57,7 @@ services:
       MYSQL_ROOT_PASSWORD: '12345'
     ports:
       - "5001:5001"
+
     restart: always
     depends_on:
       - mysql_weather
