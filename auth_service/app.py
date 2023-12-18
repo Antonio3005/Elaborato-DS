@@ -9,7 +9,7 @@ app = Flask(__name__, template_folder='templates')
 
 
 # Configurazione del database MySQL con SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root@localhost/users"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_users/users"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
