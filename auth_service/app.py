@@ -5,7 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 # Carica le variabili di ambiente da .env
 load_dotenv()
 
-app = Flask(__name__, template_folder='auth/templates')
+app = Flask(__name__, template_folder='templates')
+
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root@localhost/users"
