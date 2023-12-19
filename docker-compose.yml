@@ -12,7 +12,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./users.sql:/docker-entrypoint-initdb.d/:ro
+      - mysql_data:/var/lib/mysql
+      #- ./users.sql:/docker-entrypoint-initdb.d/:ro
     restart: always
 
   auth_service:
@@ -42,7 +43,8 @@ services:
     ports:
       - "3307:3306"
     volumes:
-      - ./user_preferences.sql:/docker-entrypoint-initdb.d/:ro
+      - mysql_data:/var/lib/mysql
+      #- ./user_preferences.sql:/docker-entrypoint-initdb.d/:ro
     restart: always
 
   weather_service:
@@ -51,19 +53,18 @@ services:
       dockerfile: Dockerfile
     container_name: weather_service
     environment:
-      MYSQL_DATABASE: 'user_prefernces'  # Nuovo database per il servizio meteo
+      MYSQL_DATABASE: 'user_preferences'  # Nuovo database per il servizio meteo
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
     ports:
       - "5001:5001"
-
     restart: always
     depends_on:
       - mysql_weather
 
-
-
+volumes:
+  mysql_data:
 
 
 

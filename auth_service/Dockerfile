@@ -6,7 +6,7 @@ WORKDIR /auth_service
 
 RUN pip3 install --upgrade pip
 COPY app.py ./
-COPY users.sql /docker-entrypoint-initdb.d/
+#COPY ../db_users/users.sql /docker-entrypoint-initdb.d/
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt
 COPY templates ./templates

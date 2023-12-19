@@ -5,6 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 # Carica le variabili di ambiente da .env
 load_dotenv()
 
+
+
 app = Flask(__name__, template_folder='templates')
 
 
@@ -20,6 +22,8 @@ class User(db.Model):
     username = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
 
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def home():

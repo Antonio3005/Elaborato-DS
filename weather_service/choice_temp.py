@@ -25,6 +25,8 @@ class UserPreferences(db.Model):
     rain_amount = db.Column(db.String(255), nullable=False)
     snow_presence = db.Column(db.String(255), nullable=False)
 
+with app.app_context():
+    db.create_all()
 
 @app.route('/choice_temp', methods=['GET', 'POST'])
 def choice_temp():
