@@ -7,7 +7,6 @@ WORKDIR /weather_service
 
 RUN pip3 install --upgrade pip
 COPY choice_temp.py ./
-#COPY ../db_preferences/user_preferences.sql /docker-entrypoint-initdb.d/
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt
 COPY templates ./templates
