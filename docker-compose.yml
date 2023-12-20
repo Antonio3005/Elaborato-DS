@@ -1,7 +1,8 @@
 version: '3'
 
 volumes:
-  mysql_data:
+  mysql_data_users:
+  mysql_data_preferences:
 
 services:
   mysql_users:
@@ -13,9 +14,9 @@ services:
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
     ports:
-      - "3306:3306"
+      - "9090:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql_data_users:/var/lib/mysql
     restart: always
 
   auth_service:
@@ -43,9 +44,9 @@ services:
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
     ports:
-      - "3307:3307"
+      - "9091:3306"
     volumes:
-     - mysql_data:/var/lib/mysql
+     - mysql_data_preferences:/var/lib/mysql
     restart: always
 
   weather_service:
