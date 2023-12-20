@@ -10,12 +10,10 @@ app = Flask(__name__)
 app.template_folder = 'templates'
 
 # Configurazione del database MySQL con SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root@localhost/user_preferences"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_weather/preferences"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-
-
 class UserPreferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
