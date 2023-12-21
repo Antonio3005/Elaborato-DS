@@ -48,7 +48,7 @@ def subscription():
     # Ottieni tutte le preferenze utente dal database
     # preferences = UserPreferences.query.all()
 
-    return render_template('choice.html')  # , preferences=preferences)
+    return render_template('subscription.html')  # , preferences=preferences)
 
 
 if __name__ == '__main__':
