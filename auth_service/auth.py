@@ -39,7 +39,7 @@ def login():
         user = User.query.filter_by(username=username, password=password).first()
 
         if user:
-            return render_template('index.html')
+            return redirect('http://127.0.0.1:5001/subscription')
         else:
             return 'Credenziali non valide. Riprova.'
 
@@ -61,7 +61,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        return redirect(url_for('login'))
+        return redirect('http://127.0.0.1:5001/subscription')
 
     return render_template('register.html')
 

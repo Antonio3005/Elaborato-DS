@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.template_folder = 'templates'
 
 # Configurazione del database MySQL con SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_weather/preferences"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/subscription"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -26,8 +26,8 @@ class UserPreferences(db.Model):
 with app.app_context():
     db.create_all()
 
-@app.route('/choice_temp', methods=['GET', 'POST'])
-def choice_temp():
+@app.route('/subscription', methods=['GET', 'POST'])
+def subscription():
     if request.method == 'POST':
         # Ottieni i valori inseriti dall'utente
         city = request.form['city']
@@ -43,7 +43,7 @@ def choice_temp():
         db.session.add(user_preferences)
         db.session.commit()
 
-        return redirect(url_for('choice_temp'))
+        return redirect(url_for('subscription'))
 
     # Ottieni tutte le preferenze utente dal database
     # preferences = UserPreferences.query.all()

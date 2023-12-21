@@ -2,7 +2,7 @@ version: '3'
 
 volumes:
   mysql_data_users:
-  mysql_data_preferences:
+  mysql_data_subscription:
 
 services:
   mysql_users:
@@ -35,27 +35,27 @@ services:
     depends_on:
       - mysql_users
 
-  mysql_weather:
+  mysql_subscription:
     image: mysql:latest
-    container_name: mysql_weather
+    container_name: mysql_subscription
     environment:
       MYSQL_ROOT_PASSWORD: '12345'
-      MYSQL_DATABASE: 'preferences'  # Nuovo database per il serviziometeo
+      MYSQL_DATABASE: 'subscription'  # Nuovo database per il serviziometeo
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
     ports:
       - "9091:3306"
     volumes:
-     - mysql_data_preferences:/var/lib/mysql
+     - mysql_data_subscription:/var/lib/mysql
     restart: always
 
-  weather_service:
+  subscription_service:
     build:
-      context: ./weather_service
+      context: subscription_service
       dockerfile: Dockerfile
-    container_name: weather_service
+    container_name: subscription_service
     environment:
-      MYSQL_DATABASE: 'preferences'  # Nuovo database per il servizio meteo
+      MYSQL_DATABASE: 'subscription'  # Nuovo database per il servizio meteo
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
@@ -63,7 +63,7 @@ services:
       - "5001:5001"
     restart: always
     depends_on:
-      - mysql_weather
+      - mysql_subscription
 
 
 
