@@ -1,8 +1,11 @@
 
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-#import os
-from dotenv import load_dotenv
+import requests
+import logging
+#from dotenv import load_dotenv
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Carica le variabili di ambiente da .env
 #load_dotenv()
@@ -71,7 +74,7 @@ def get_iata(city):
             else:
                 print("Array 'locations' vuoto o assente nella risposta dell'API.")
         except json.JSONDecodeError:
-        print("Errore nella decodifica della risposta JSON.")
+            print("Errore nella decodifica della risposta JSON.")
 
     else:
         # Se la richiesta non è andata a buon fine, stampa il codice di stato
@@ -124,11 +127,16 @@ def flights():
     print(subscription)
     for sub in subscription:
         iata_from=get_iata(sub.city_from)
+        print(iata_from)
+        logging.debug("Questo è un messaggio di debug.")
+        logging.debug(f"Valore di iata: {iata_from}")
         iata_to=get_iata(sub.city_to)
-        data= get_flights(iata_from,iata_to,sub.date_from,sub.date_to,sub.return_from,sub.return_to,sub.price_from,sub.price_to)
+        print(sub.city_to)
+        logging.debug(f"Valore di iata: {iata_to}")
+        data=get_flights(iata_from,iata_to,sub.date_from,sub.date_to,sub.return_from,sub.return_to,sub.price_from,sub.price_to)
+        logging.debug(f"Valore di data: {data}")
         for flight_data in data['data']:
             new_flight = BestFlights(
-                id=sub.id,
                 user_id=sub.user_id,  # You need to provide the user_id
                 city_from=flight_data['cityFrom'],
                 airport_from=flight_data['flyFrom'],
@@ -143,6 +151,9 @@ def flights():
     # Commit the changes to the database
     db.session.commit()
 
+    return 'Eseguito con successo'
+
+
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5002)
+    app.run(debug=True, host='0.0.0.0', port=5002)

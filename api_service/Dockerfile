@@ -7,9 +7,8 @@ RUN pip3 install --upgrade pip
 COPY api.py ./
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt
-COPY templates ./templates
 
-EXPOSE 5000
+EXPOSE 5002
 
 # Comando per avviare il servizio
 CMD ["python", "api.py"]

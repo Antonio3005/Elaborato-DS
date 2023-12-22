@@ -17,11 +17,14 @@ db = SQLAlchemy(app)
 class UserPreferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
-    city = db.Column(db.String(255), nullable=False)
-    temp_max = db.Column(db.String(255), nullable=False)
-    temp_min = db.Column(db.String(255), nullable=False)
-    rain_amount = db.Column(db.String(255), nullable=False)
-    snow_presence = db.Column(db.String(255), nullable=False)
+    city_from = db.Column(db.String(255), nullable=False)
+    city_to = db.Column(db.String(255), nullable=False)
+    date_from = db.Column(db.String(255), nullable=False)
+    date_to = db.Column(db.String(255), nullable=False)
+    return_from = db.Column(db.String(255), nullable=False)
+    return_to = db.Column(db.String(255), nullable=False)
+    price_from = db.Column(db.String(255), nullable=False)
+    price_to = db.Column(db.String(255), nullable=False)
 
 with app.app_context():
     db.create_all()
@@ -30,16 +33,21 @@ with app.app_context():
 def subscription():
     if request.method == 'POST':
         # Ottieni i valori inseriti dall'utente
-        city = request.form['city']
-        temp_max = request.form['temp_max']
-        temp_min = request.form['temp_min']
-        rain_amount = request.form['temp_min']
-        snow_presence = request.form['temp_min']
+        city_from = request.form['city_from']
+        city_to = request.form['city_to']
+        date_from = request.form['date_from']
+        date_to = request.form['date_to']
+        return_from = request.form['return_from']
+        return_to = request.form['return_to']
+        price_from = request.form['price_from']
+        price_to = request.form['price_to']
 
         # Salva i valori nel database
-        user_preferences = UserPreferences(user_id="antonio", city=city, temp_max=temp_max,
-                                           temp_min=temp_min, rain_amount=rain_amount,
-                                           snow_presence=snow_presence)
+        user_preferences = UserPreferences(user_id="antonio", city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
+                                           return_from=return_from,
+                                           return_to=return_to,
+                                           price_from=price_from,
+                                           price_to=price_to)
         db.session.add(user_preferences)
         db.session.commit()
 
