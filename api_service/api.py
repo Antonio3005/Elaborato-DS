@@ -79,47 +79,9 @@ def get_iata(city):
 
     return iata
 
-@app.route('/weather', methods=['GET'])
-def get_weather():
-
-    subscription = UserPreferences.query.all()
-    print(subscription)
-
-
-
-
-
-    import requests
-
-    url = 'https://api.tequila.kiwi.com/locations/query'
-    headers = {
-        'accept': 'application/json',
-        'apikey': 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
-    }
-
-    params = {
-        'term': 'roma',
-        'locale': 'it-IT',
-        'location_types': 'city',
-        'limit': 10,
-        'active_only': True
-    }
-
-    response = requests.get(url, params=params, headers=headers)
-
-    if response.status_code == 200:
-        data = response.json()
-        print(data)
-    else:
-        print(f"Error: {response.status_code}, {response.text}")
-
-
-
-
-
 
 # Function to get flights and insert into the database
-def get_and_insert_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, price_from, price_to):
+def get_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, price_from, price_to):
     url = 'https://api.tequila.kiwi.com/v2/search'
     headers = {
         'accept': 'application/json',
@@ -155,7 +117,31 @@ def get_and_insert_flights(iata_from, iata_to, date_from, date_to, return_from, 
         print(f"Error: {response.status_code}, {response.text}")
     return data
 
+@app.route('/', methods=['GET'])
+def flights():
 
+    subscription = UserPreferences.query.all()
+    print(subscription)
+    for sub in subscription:
+        iata_from=get_iata(sub.city_from)
+        iata_to=get_iata(sub.city_to)
+        data= get_flights(iata_from,iata_to,sub.date_from,sub.date_to,sub.return_from,sub.return_to,sub.price_from,sub.price_to)
+        for flight_data in data['data']:
+            new_flight = BestFlights(
+                id=sub.id,
+                user_id=sub.user_id,  # You need to provide the user_id
+                city_from=flight_data['cityFrom'],
+                airport_from=flight_data['flyFrom'],
+                airport_to=flight_data['flyTo'],
+                city_to=flight_data['cityTo'],
+                departure_date=flight_data['local_departure'],
+                return_date=flight_data['local_arrival'],
+                price=flight_data['price']
+            )
+            db.session.add(new_flight)
+
+    # Commit the changes to the database
+    db.session.commit()
 
 
 if __name__ == '__main__':
