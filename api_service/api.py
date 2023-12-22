@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 #import os
@@ -14,14 +15,28 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/sub
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+class BestFlights(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(255), nullable=False)
+    city_from = db.Column(db.String(255), nullable=False)
+    airport_from = db.Column(db.String(255), nullable=False)
+    airport_to = db.Column(db.String(255), nullable=False)
+    city_to = db.Column(db.String(255), nullable=False)
+    departure_date = db.Column(db.String(255), nullable=False)
+    return_date = db.Column(db.String(255), nullable=False)
+    price = db.Column(db.String(255), nullable=False)
 class UserPreferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
-    city = db.Column(db.String(255), nullable=False)
-    temp_max = db.Column(db.String(255), nullable=False)
-    temp_min = db.Column(db.String(255), nullable=False)
-    rain_amount = db.Column(db.String(255), nullable=False)
-    snow_presence = db.Column(db.String(255), nullable=False)
+    city_from = db.Column(db.String(255), nullable=False)
+    city_to = db.Column(db.String(255), nullable=False)
+    date_from = db.Column(db.String(255), nullable=False)
+    date_to = db.Column(db.String(255), nullable=False)
+    return_from = db.Column(db.String(255), nullable=False)
+    return_to = db.Column(db.String(255), nullable=False)
+    price_from = db.Column(db.String(255), nullable=False)
+    price_to = db.Column(db.String(255), nullable=False)
+
 
 with app.app_context():
     db.create_all()
@@ -98,8 +113,13 @@ def get_weather():
     else:
         print(f"Error: {response.status_code}, {response.text}")
 
-    import requests
 
+
+
+
+
+# Function to get flights and insert into the database
+def get_and_insert_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, price_from, price_to):
     url = 'https://api.tequila.kiwi.com/v2/search'
     headers = {
         'accept': 'application/json',
@@ -107,59 +127,36 @@ def get_weather():
     }
 
     params = {
-        'fly_from': fly_from,
-        'fly_to': 'PRG',
-        'date_from': '01/04/2024',
-        'date_to': '03/04/2024',
-        'return_from': '04/04/2024',
-        'return_to': '06/04/2024',
+        'fly_from': iata_from,
+        'fly_to': iata_to,
+        'date_from': date_from,
+        'date_to': date_to,
+        'return_from': return_from,
+        'return_to': return_to,
         'adults': 1,
         'adult_hand_bag': 1,
         'partner_market': 'it',
-        'price_from': 10,
-        'price_to': 5000,
+        'price_from': price_from,
+        'price_to': price_to,
         'vehicle_type': 'aircraft',
         'sort': 'price',
-        'limit': 50
+        'limit': 2
     }
 
+    # Make the API request
     response = requests.get(url, params=params, headers=headers)
 
     if response.status_code == 200:
         data = response.json()
-        print(data)
+
+        # Iterate over the data and insert into the database
+
     else:
         print(f"Error: {response.status_code}, {response.text}")
+    return data
 
-        flights = requests.get(url, params=params, headers=headers)
 
-        if flights.status_code == 200:
-            data = response.json()
-            print(data)
-        else:
-        print(f"Error: {flights.status_code}, {flights.text}")
 
-    #if not city:
-    #    return jsonify({'error': 'Specificare una città nella richiesta'}), 400
-
-    # Costruisci l'URL per l'API di OpenWeatherMap
-    #url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}'
-
-    # Effettua la richiesta all'API di OpenWeatherMap
-    #response = requests.get(url)
-    #data = response.json()
-
-    # Verifica se la richiesta ha avuto successo
-    #if response.status_code == 200:
-    #    weather_info = {
-    #        'city': data['name'],
-    #        'temperature': data['main']['temp'],
-    #        'description': data['weather'][0]['description'],
-    #    }
-    #    return jsonify(weather_info)
-    #else:
-    #    return jsonify({'error': 'Errore durante la richiesta API'}), 500
-    """
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
