@@ -33,6 +33,31 @@ def get_weather():
     print(subscription)
 
     """"
+    
+    import requests
+
+url = 'https://api.tequila.kiwi.com/locations/query'
+headers = {
+    'accept': 'application/json',
+    'apikey': 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
+}
+
+params = {
+    'term': 'roma',
+    'locale': 'it-IT',
+    'location_types': 'city',
+    'limit': 10,
+    'active_only': True
+}
+
+response = requests.get(url, params=params, headers=headers)
+
+if response.status_code == 200:
+    data = response.json()
+    print(data)
+else:
+    print(f"Error: {response.status_code}, {response.text}")
+
     url = 'https://api.tequila.kiwi.com/v2/search'
     headers = {
         'accept': 'application/json',
