@@ -12,6 +12,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 app.template_folder = 'templates'
+kafka_bootstrap_servers = 'your_kafka_bootstrap_servers'
+kafka_topic = 'your_kafka_topic'
+producer = KafkaProducer(bootstrap_servers=kafka_bootstrap_servers,
+                         value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/subscription"
@@ -135,7 +139,8 @@ def flights():
         logging.debug(f"Valore di iata: {iata_to}")
         data=get_flights(iata_from,iata_to,sub.date_from,sub.date_to,sub.return_from,sub.return_to,sub.price_from,sub.price_to)
         logging.debug(f"Valore di data: {data}")
-        for flight_data in data['data']:
+        producer.send(kafka_topic, value=data)
+        """for flight_data in data['data']:
             new_flight = BestFlights(
                 user_id=sub.user_id,  # You need to provide the user_id
                 city_from=flight_data['cityFrom'],
@@ -147,7 +152,7 @@ def flights():
                 price=flight_data['price']
             )
             db.session.add(new_flight)
-
+"""
     # Commit the changes to the database
     db.session.commit()
 
