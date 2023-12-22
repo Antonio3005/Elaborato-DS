@@ -65,7 +65,21 @@ services:
     depends_on:
       - mysql_subscription
 
-
+  api_service:
+    build:
+      context: api_service
+      dockerfile: Dockerfile
+    container_name: api_service
+    environment:
+      MYSQL_DATABASE: 'subscription'  # Nuovo database per il servizio meteo
+      MYSQL_USER: 'an'
+      MYSQL_PASSWORD: '12345'
+      MYSQL_ROOT_PASSWORD: '12345'
+    ports:
+      - "5002:5002"
+    restart: always
+    depends_on:
+      - mysql_subscription
 
 
 

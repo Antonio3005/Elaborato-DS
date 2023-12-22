@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-import os
-from dotenv import load_dotenv
+#import os
+#from dotenv import load_dotenv
 
 # Carica le variabili di ambiente da .env
-load_dotenv()
+#load_dotenv()
 
 app = Flask(__name__)
 app.template_folder = 'templates'

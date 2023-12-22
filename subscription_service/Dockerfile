@@ -1,6 +1,4 @@
-# Usa un'immagine di base con Python
 FROM python:3.11.5
-
 
 # Imposta il lavoro di lavoro nel container
 WORKDIR /subscription_service
