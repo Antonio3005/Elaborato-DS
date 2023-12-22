@@ -32,7 +32,7 @@ def get_weather():
     subscription = UserPreferences.query.all()
     print(subscription)
 
-    """"
+
     
     import requests
 
@@ -58,42 +58,39 @@ if response.status_code == 200:
 else:
     print(f"Error: {response.status_code}, {response.text}")
 
-    url = 'https://api.tequila.kiwi.com/v2/search'
-    headers = {
-        'accept': 'application/json',
-        'apikey': 'D-ljrLyhPOeM1-eWQWcVliV9mBNListf'
-    }
+import requests
 
-    params = {
-        'fly_from': 'FRA',
-        'fly_to': 'PRG',
-        'date_from': '01/04/2024',
-        'date_to': '03/04/2024',
-        'return_from': '04/04/2024',
-        'return_to': '06/04/2024',
-        'nights_in_dst_from': 2,
-        'nights_in_dst_to': 3,
-        'max_fly_duration': 20,
-        'ret_from_diff_city': True,
-        'ret_to_diff_city': True,
-        'one_for_city': 0,
-        'one_per_date': 0,
-        'adults': 2,
-        'children': 2,
-        'selected_cabins': 'C',
-        'mix_with_cabins': 'M',
-        'adult_hold_bag': '1,0',
-        'adult_hand_bag': '1,1',
-        'child_hold_bag': '2,1',
-        'child_hand_bag': '1,1',
-        'only_working_days': False,
-        'only_weekends': False,
-        'partner_market': 'us',
-        'max_stopovers': 2,
-        'max_sector_stopovers': 2,
-        'vehicle_type': 'aircraft',
-        'limit': 100
-    }
+url = 'https://api.tequila.kiwi.com/v2/search'
+headers = {
+    'accept': 'application/json',
+    'apikey': 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
+}
+
+params = {
+    'fly_from': fly_from,
+    'fly_to': 'PRG',
+    'date_from': '01/04/2024',
+    'date_to': '03/04/2024',
+    'return_from': '04/04/2024',
+    'return_to': '06/04/2024',
+    'adults': 1,
+    'adult_hand_bag': 1,
+    'partner_market': 'it',
+    'price_from': 10,
+    'price_to': 5000,
+    'vehicle_type': 'aircraft',
+    'sort': 'price',
+    'limit': 50
+}
+
+response = requests.get(url, params=params, headers=headers)
+
+if response.status_code == 200:
+    data = response.json()
+    print(data)
+else:
+    print(f"Error: {response.status_code}, {response.text}")
+
     flights = requests.get(url, params=params, headers=headers)
 
     if flights.status_code == 200:
