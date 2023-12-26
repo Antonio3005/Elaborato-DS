@@ -2,11 +2,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
-# Carica le variabili di ambiente da .env
-#load_dotenv()
-
-
-
 app = Flask(__name__, template_folder='templates')
 
 

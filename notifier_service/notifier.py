@@ -3,16 +3,41 @@ import json
 import schedule
 import time
 import smtplib
+import requests
 from email.mime.text import MIMEText
+from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
 
-# Configurazione di Kafka
-kafka_bootstrap_servers = 'your_kafka_bootstrap_servers'
-kafka_topic = 'your_kafka_topic'
-consumer = KafkaConsumer(kafka_topic, bootstrap_servers=kafka_bootstrap_servers,
-                         value_deserializer=lambda x: json.loads(x.decode('utf-8')))
+app = Flask(__name__)
+
 
 # Configurazione del database MySQL con SQLAlchemy
-# ...
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_bestflights/bestflights"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Configurazione di Kafka
+kafka_bootstrap_servers = 'kafka:9092'
+kafka_topic = 'flights'
+group_id = 'group'
+consumer = KafkaConsumer(kafka_topic, group_id=group_id, bootstrap_servers=kafka_bootstrap_servers,
+                         value_deserializer=lambda x: json.loads(x.decode('utf-8')))
+
+db = SQLAlchemy(app)
+
+class BestFlights(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(255), nullable=False)
+    city_from = db.Column(db.String(255), nullable=False)
+    airport_from = db.Column(db.String(255), nullable=False)
+    airport_to = db.Column(db.String(255), nullable=False)
+    city_to = db.Column(db.String(255), nullable=False)
+    departure_date = db.Column(db.String(255), nullable=False)
+    return_date = db.Column(db.String(255), nullable=False)
+    price = db.Column(db.String(255), nullable=False)
+
+
+with app.app_context():
+    db.create_all()
 
 def save_to_database(flight_data):
 
@@ -67,9 +92,15 @@ def trigger_api_and_consume_messages():
         consume_messages()
 
 # Scheduler per eseguire trigger_api_and_consume_messages ogni giorno alle 8:00 AM
-schedule.every().day.at("08:00").do(trigger_api_and_consume_messages)
+
+@app.route('/', methods=['GET'])
+def best_flights():
+    schedule.every().day.at("08:00").do(trigger_api_and_consume_messages)
+
+
 
 if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5003)
     while True:
         schedule.run_pending()
         time.sleep(1)

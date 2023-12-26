@@ -1,19 +1,15 @@
-
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import logging
-#from dotenv import load_dotenv
 
 logging.basicConfig(level=logging.DEBUG)
 
-# Carica le variabili di ambiente da .env
-#load_dotenv()
 
 app = Flask(__name__)
-app.template_folder = 'templates'
-kafka_bootstrap_servers = 'your_kafka_bootstrap_servers'
-kafka_topic = 'your_kafka_topic'
+
+kafka_bootstrap_servers = 'kafka:9092'
+kafka_topic = 'flights'
 producer = KafkaProducer(bootstrap_servers=kafka_bootstrap_servers,
                          value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 

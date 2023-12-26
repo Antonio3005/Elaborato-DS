@@ -3,6 +3,7 @@ version: '3'
 volumes:
   mysql_data_users:
   mysql_data_subscription:
+  mysql_data_bestflights:
 
 services:
   mysql_users:
@@ -65,6 +66,32 @@ services:
     depends_on:
       - mysql_subscription
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    expose:
+      - "2181"
+    restart: always
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092 #all'interno della rete Docker tra i tuoi servizi, utilizzi l'indirizzo interno (kafka:9092). Quando comunichi da un host esterno al container, utilizzi l'indirizzo e la porta esposta (localhost:29092). Questo approccio consente di gestire le comunicazioni interne ed esterne senza modificare la configurazione.
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
   api_service:
     build:
       context: api_service
@@ -75,11 +102,45 @@ services:
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"  # Indirizzo del broker Kafka
     ports:
       - "5002:5002"
     restart: always
     depends_on:
       - mysql_subscription
+      - kafka
 
+  mysql_bestflights:
+    image: mysql:latest
+    container_name: mysql_bestflights
+    environment:
+      MYSQL_ROOT_PASSWORD: '12345'
+      MYSQL_DATABASE: 'bestflights'  # Nuovo database per il serviziometeo
+      MYSQL_USER: 'an'
+      MYSQL_PASSWORD: '12345'
+    ports:
+      - "9092:3306"
+    volumes:
+      - mysql_data_bestflights:/var/lib/mysql
+    restart: always
 
+  notifier_service:
+    build:
+      context: notifier_service
+      dockerfile: Dockerfile
+    container_name: notifier_service
+    environment:
+      MYSQL_DATABASE: 'bestflights'  # Nuovo database per il servizio meteo
+      MYSQL_USER: 'an'
+      MYSQL_PASSWORD: '12345'
+      MYSQL_ROOT_PASSWORD: '12345'
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"  # Indirizzo del broker Kafka
+      KAFKA_TOPIC: 'flights'
+      KAFKA_GROUP_ID: "group"
+    ports:
+      - "5003:5003"
+    restart: always
+    depends_on:
+      - mysql_bestflights
+      - kafka
 
