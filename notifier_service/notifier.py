@@ -86,10 +86,9 @@ def process_flight_data(flight_data):
 
     save_to_database(flight_data)
 
-    to_email = 'recipient@example.com'  # Specifica l'indirizzo email del destinatario
+    to_email =flight_data['user_id']  # Specifica l'indirizzo email del destinatario
     subject = 'Nuove offerte di volo disponibili!'
-    body = f"Ci sono nuove offerte di volo disponibili. Controlla il nostro sito per maggiori dettagli." #da modificare
-
+    body = f"Ci sono nuove offerte di volo disponibili per le tue richieste: {flight_data}" #da modificare
     send_notification_email(to_email, subject, body)
 def consume_messages():
     for message in consumer:
@@ -97,16 +96,14 @@ def consume_messages():
         data = json.loads(flight_data)
         process_flight_data(data)
 
-def trigger_api_and_consume_messages():
-    response = requests.get('http://localhost:5002/')  # Chiamata all'API Service per ottenere dati aggiornati
-    if response.status_code == 200:
-        consume_messages()
+
 
 # Scheduler per eseguire trigger_api_and_consume_messages ogni giorno alle 8:00 AM
 
 @app.route('/', methods=['GET'])
 def best_flights():
-    schedule.every().day.at("08:00").do(trigger_api_and_consume_messages)
+    consume_messages()
+
 
 
 

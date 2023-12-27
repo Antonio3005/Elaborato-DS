@@ -4,6 +4,8 @@ import requests
 import logging
 import json
 from confluent_kafka import Producer
+import schedule
+import time
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -124,7 +126,7 @@ def get_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, 
         print(f"Error: {response.status_code}, {response.text}")
     return data
 
-@app.route('/', methods=['GET'])
+
 def flights():
 
     subscription = UserPreferences.query.all()
@@ -173,8 +175,9 @@ def flights():
     db.session.commit()
 
     return 'Eseguito con successo'
-
-
+@app.route('/', methods=['GET'])
+def schedule_flights():
+    schedule.every().day.at("08:00").do(flights)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5002)
