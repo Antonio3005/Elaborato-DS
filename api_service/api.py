@@ -145,16 +145,19 @@ def flights():
 
         for flight_data in data['data']:
         # Aggiungi user_id a ciascun oggetto nel JSON data
-        flight_data['user_id'] = sub.user_id
+            flight_data['user_id'] = sub.user_id
+            logging.debug(f"Valore di data: {flight_data['user_id']}")
+            logging.debug(f"Valore di data: {flight_data}")
+            serialized_data = json.dumps(flight_data).encode('utf-8')
+            producer.produce(kafka_topic, value=serialized_data)
 
-        # Serializza e invia ogni oggetto separatamente
-        serialized_data = json.dumps(flight_data).encode('utf-8')
-        producer.produce(kafka_topic, value=serialized_data)
+
+    # Serializza e invia ogni oggetto separatamente
+
         producer.flush()
 
 
 
-        logging.debug(f"Valore di data: {data}")
 
         # Opzionalmente, attendi la conferma dell'avvenuta consegna
 
@@ -177,7 +180,16 @@ def flights():
     return 'Eseguito con successo'
 @app.route('/', methods=['GET'])
 def schedule_flights():
-    schedule.every().day.at("08:00").do(flights)
+    schedule.every().day.at("16:44").do(flights)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+    return 'Eseguito con successo'
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5002)
+    #while True:
+    #    schedule.run_pending()
+    #    time.sleep(1)

@@ -1,11 +1,14 @@
-from confluent_kafka import Consumer
+from confluent_kafka import Consumer, KafkaError
 import json
 import schedule
 import time
 import requests
+import logging
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 mail = Mail(app)
@@ -37,7 +40,7 @@ app.config['MAIL_PASSWORD'] = '12345'
 app.config['MAIL_DEFAULT_SENDER'] = 'antonioinv12@gmail.com'
 
 mail.init_app(app)
-consumer = Consumer(**conf)
+
 db = SQLAlchemy(app)
 
 class BestFlights(db.Model):
@@ -91,21 +94,57 @@ def process_flight_data(flight_data):
     body = f"Ci sono nuove offerte di volo disponibili per le tue richieste: {flight_data}" #da modificare
     send_notification_email(to_email, subject, body)
 def consume_messages():
-    for message in consumer:
-        flight_data = message.value
-        data = json.loads(flight_data)
-        process_flight_data(data)
+    from confluent_kafka import KafkaError
+
+def consume_messages(c):
+    try:
+        while True:
+            # Consuma i messaggi
+            msg = c.poll(0.1)
+
+            if msg is None:
+                continue
+            if msg.error():
+                if msg.error().code() == KafkaError._PARTITION_EOF:
+                    continue
+                else:
+                    print(msg.error())
+                    break
+
+            # Elabora il messaggio
+            flight_data = msg.value()
+            data = json.loads(flight_data)
+            logging.debug(f"data : {data}")
+            process_flight_data(data)
+
+    except Exception as e:
+        print(f"Errore durante la lettura dei messaggi: {e}")
+    finally:
+        # Chiudi il consumatore alla fine
+        c.close()
 
 
+#def trigger_api_and_consume_messages():
+#    response = requests.get('http://localhost:5002/')  # Chiamata all'API Service per ottenere dati aggiornati
+#    if response.status_code == 200:
+#        consume_messages()
 
 # Scheduler per eseguire trigger_api_and_consume_messages ogni giorno alle 8:00 AM
 
 @app.route('/', methods=['GET'])
 def best_flights():
-    consume_messages()
+    consumer = Consumer(**conf)
+    consumer.subscribe([kafka_topic])
 
+    try:
+        consume_messages(consumer)
+    except Exception as e:
+        print(f"Errore durante la lettura dei messaggi: {e}")
+    finally:
+        # Chiudi il consumatore alla fine
+        consumer.close()
 
-
+    return "Successo"
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5003)
