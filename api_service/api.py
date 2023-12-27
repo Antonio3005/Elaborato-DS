@@ -22,7 +22,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/sub
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-class BestFlights(db.Model):
+"""class BestFlights(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
     city_from = db.Column(db.String(255), nullable=False)
@@ -31,7 +31,7 @@ class BestFlights(db.Model):
     city_to = db.Column(db.String(255), nullable=False)
     departure_date = db.Column(db.String(255), nullable=False)
     return_date = db.Column(db.String(255), nullable=False)
-    price = db.Column(db.String(255), nullable=False)
+    price = db.Column(db.String(255), nullable=False)"""
 class UserPreferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
@@ -138,7 +138,10 @@ def flights():
         print(sub.city_to)
         logging.debug(f"Valore di iata: {iata_to}")
         data=get_flights(iata_from,iata_to,sub.date_from,sub.date_to,sub.return_from,sub.return_to,sub.price_from,sub.price_to)
-        #data.append
+
+        for flight_data in data['data']:
+            flight_data['user_id'] = sub.user_id
+
         logging.debug(f"Valore di data: {data}")
         producer.produce(kafka_topic, value=data)
         # Opzionalmente, attendi la conferma dell'avvenuta consegna
