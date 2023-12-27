@@ -142,12 +142,20 @@ def flights():
         serialized_data = json.dumps(data).encode('utf-8')
 
         for flight_data in data['data']:
-            flight_data['user_id'] = sub.user_id
+        # Aggiungi user_id a ciascun oggetto nel JSON data
+        flight_data['user_id'] = sub.user_id
+
+        # Serializza e invia ogni oggetto separatamente
+        serialized_data = json.dumps(flight_data).encode('utf-8')
+        producer.produce(kafka_topic, value=serialized_data)
+        producer.flush()
+
+
 
         logging.debug(f"Valore di data: {data}")
-        producer.produce(kafka_topic, value=serialized_data)
+
         # Opzionalmente, attendi la conferma dell'avvenuta consegna
-        producer.flush()
+
         """for flight_data in data['data']:
             new_flight = BestFlights(
                 user_id=sub.user_id,  # You need to provide the user_id
