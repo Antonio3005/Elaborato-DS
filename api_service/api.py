@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import logging
+import json
 from confluent_kafka import Producer
 
 logging.basicConfig(level=logging.DEBUG)
@@ -137,8 +138,11 @@ def flights():
         print(sub.city_to)
         logging.debug(f"Valore di iata: {iata_to}")
         data=get_flights(iata_from,iata_to,sub.date_from,sub.date_to,sub.return_from,sub.return_to,sub.price_from,sub.price_to)
+        #data.append
         logging.debug(f"Valore di data: {data}")
-        producer.send(kafka_topic, value=data)
+        producer.produce(kafka_topic, value=data)
+        # Opzionalmente, attendi la conferma dell'avvenuta consegna
+        producer.flush()
         """for flight_data in data['data']:
             new_flight = BestFlights(
                 user_id=sub.user_id,  # You need to provide the user_id

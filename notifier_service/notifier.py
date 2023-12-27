@@ -94,7 +94,8 @@ def process_flight_data(flight_data):
 def consume_messages():
     for message in consumer:
         flight_data = message.value
-        process_flight_data(flight_data)
+        data = json.loads(flight_data)
+        process_flight_data(data)
 
 def trigger_api_and_consume_messages():
     response = requests.get('http://localhost:5002/')  # Chiamata all'API Service per ottenere dati aggiornati
