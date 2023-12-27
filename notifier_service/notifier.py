@@ -1,15 +1,16 @@
-from kafka import KafkaConsumer
+from confluent_kafka import Consumer
 import json
 import schedule
 import time
-import smtplib
 import requests
-from email.mime.text import MIMEText
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
+mail = Mail(app)
 
+#modificare le funzioni del producer e del consumer
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_bestflights/bestflights"
@@ -19,9 +20,24 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 kafka_bootstrap_servers = 'kafka:9092'
 kafka_topic = 'flights'
 group_id = 'group'
-consumer = KafkaConsumer(kafka_topic, group_id=group_id, bootstrap_servers=kafka_bootstrap_servers,
-                         value_deserializer=lambda x: json.loads(x.decode('utf-8')))
+conf = {
+    'bootstrap.servers': kafka_bootstrap_servers,
+    'group.id': group_id,
+    'auto.offset.reset': 'earliest',  # Puoi regolare questa impostazione in base alle tue esigenze
+}
 
+
+
+# Configurazione Flask-Mail
+app.config['MAIL_SERVER'] = 'an_server'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'an'
+app.config['MAIL_PASSWORD'] = '12345'
+app.config['MAIL_DEFAULT_SENDER'] = 'antonioinv12@gmail.com'
+
+mail.init_app(app)
+consumer = Consumer(**conf)
 db = SQLAlchemy(app)
 
 class BestFlights(db.Model):
@@ -53,32 +69,26 @@ def save_to_database(flight_data):
     )
     db.session.add(new_flight)
     db.session.commit()
+
 def send_notification_email(to_email, subject, body):
-# Configurazione per l'invio dell'email
-# Configurazione per l'invio dell'email
-smtp_server = 'your_smtp_server'
-smtp_port = 587
-smtp_username = 'your_smtp_username'
-smtp_password = 'your_smtp_password'
-from_email = 'your_from_email'
+    try:
+        msg = Message(subject = subject,
+                      recipients=[to_email])
+        msg.body = body
+        mail.send(msg)
+        return 'Email inviata con successo!'
+    except Exception as e:
+        return 'Errore durante l\'invio dell\'email: ' + str(e)
 
-msg = MIMEText(body)
-msg['Subject'] = subject
-msg['From'] = from_email
-msg['To'] = to_email
-
-with smtplib.SMTP(smtp_server, smtp_port) as server:
-    server.starttls()
-    server.login(smtp_username, smtp_password)
-    server.sendmail(from_email, [to_email], msg.as_string())
 
 
 def process_flight_data(flight_data):
+
     save_to_database(flight_data)
 
     to_email = 'recipient@example.com'  # Specifica l'indirizzo email del destinatario
     subject = 'Nuove offerte di volo disponibili!'
-    body = f"Ci sono nuove offerte di volo disponibili. Controlla il nostro sito per maggiori dettagli."
+    body = f"Ci sono nuove offerte di volo disponibili. Controlla il nostro sito per maggiori dettagli." #da modificare
 
     send_notification_email(to_email, subject, body)
 def consume_messages():
@@ -101,6 +111,6 @@ def best_flights():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5003)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+#    while True:
+#        schedule.run_pending()
+#        time.sleep(1)

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import logging
+from confluent_kafka import Producer
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -10,8 +11,10 @@ app = Flask(__name__)
 
 kafka_bootstrap_servers = 'kafka:9092'
 kafka_topic = 'flights'
-producer = KafkaProducer(bootstrap_servers=kafka_bootstrap_servers,
-                         value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+conf = {
+    'bootstrap.servers': kafka_bootstrap_servers,
+}
+producer = Producer(**conf)
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/subscription"

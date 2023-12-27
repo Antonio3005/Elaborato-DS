@@ -102,7 +102,8 @@ services:
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
-      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"  # Indirizzo del broker Kafka
+      KAFKA_BOOTSTRAP_SERVERS: 'kafka:9092'  # Indirizzo del broker Kafka
+      KAFKA_GROUP: 'group'
     ports:
       - "5002:5002"
     restart: always
@@ -115,7 +116,7 @@ services:
     container_name: mysql_bestflights
     environment:
       MYSQL_ROOT_PASSWORD: '12345'
-      MYSQL_DATABASE: 'bestflights'  # Nuovo database per il serviziometeo
+      MYSQL_DATABASE: 'bestflights'  # Nuovo database per il servizio
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
     ports:
@@ -135,8 +136,13 @@ services:
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
       KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"  # Indirizzo del broker Kafka
-      KAFKA_TOPIC: 'flights'
       KAFKA_GROUP_ID: "group"
+      MAIL_SERVER: 'an_server'
+      MAIL_PORT: 587
+      MAIL_USE_TLS: 'true'
+      MAIL_USERNAME: 'an'
+      MAIL_PASSWORD: '12345'
+      MAIL_DEFAULT_SENDER: 'antonioinv12@gmail.com'
     ports:
       - "5003:5003"
     restart: always
