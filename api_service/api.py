@@ -24,7 +24,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/sub
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-class BestFlights(db.Model):
+"""class BestFlights(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
     city_from = db.Column(db.String(255), nullable=False)
@@ -33,7 +33,7 @@ class BestFlights(db.Model):
     city_to = db.Column(db.String(255), nullable=False)
     departure_date = db.Column(db.String(255), nullable=False)
     return_date = db.Column(db.String(255), nullable=False)
-    price = db.Column(db.String(255), nullable=False)
+    price = db.Column(db.String(255), nullable=False)"""
 class UserPreferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
@@ -180,7 +180,7 @@ def flights():
     return 'Eseguito con successo'
 @app.route('/', methods=['GET'])
 def schedule_flights():
-    schedule.every().day.at("16:44").do(flights)
+    schedule.every().day.at("23:52").do(flights)
 
     while True:
         schedule.run_pending()

@@ -32,12 +32,13 @@ conf = {
 
 
 # Configurazione Flask-Mail
-app.config['MAIL_SERVER'] = 'an_server'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'an'
-app.config['MAIL_PASSWORD'] = '12345'
-app.config['MAIL_DEFAULT_SENDER'] = 'antonioinv12@gmail.com'
+app.config['MAIL_SERVER'] = 'smtp.libero.it'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = 'angelo-cocuzza@libero.it'
+app.config['MAIL_PASSWORD'] = 'Bestflights123!'
+app.config['MAIL_DEFAULT_SENDER'] = 'angelo-cocuzza@libero.it'
 
 mail.init_app(app)
 
@@ -86,10 +87,11 @@ def send_notification_email(to_email, subject, body):
 
 
 def process_flight_data(flight_data):
+    logging.debug(f"process_flight_dats : {flight_data}")
+    #save_to_database(flight_data)
+    logging.debug(f"process_flight_dats : {flight_data['user_id']}")
 
-    save_to_database(flight_data)
-
-    to_email =flight_data['user_id']  # Specifica l'indirizzo email del destinatario
+    to_email ='angelodileonforte@gmail.com'#flight_data['user_id']   Specifica l'indirizzo email del destinatario non funziona quando si prende con le parentesi quadre dal json stesso problema nel database vedere come risolverlo
     subject = 'Nuove offerte di volo disponibili!'
     body = f"Ci sono nuove offerte di volo disponibili per le tue richieste: {flight_data}" #da modificare
     send_notification_email(to_email, subject, body)
@@ -112,7 +114,7 @@ def consume_messages(c):
                     break
 
             # Elabora il messaggio
-            flight_data = msg.value()
+            flight_data = msg.value().decode('utf-8')
             data = json.loads(flight_data)
             logging.debug(f"data : {data}")
             process_flight_data(data)
@@ -137,6 +139,7 @@ def best_flights():
     consumer.subscribe([kafka_topic])
 
     try:
+
         consume_messages(consumer)
     except Exception as e:
         print(f"Errore durante la lettura dei messaggi: {e}")

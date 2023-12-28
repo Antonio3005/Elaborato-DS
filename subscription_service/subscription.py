@@ -39,7 +39,7 @@ def subscription():
         price_to = request.form['price_to']
 
         # Salva i valori nel database
-        user_preferences = UserPreferences(user_id="antonio", city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
+        user_preferences = UserPreferences(user_id="angelodileonforte@gmail.com", city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
                                            return_from=return_from,
                                            return_to=return_to,
                                            price_from=price_from,
