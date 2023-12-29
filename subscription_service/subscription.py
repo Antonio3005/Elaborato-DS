@@ -53,8 +53,7 @@ def subscription(username):
         return redirect(url_for('subscription', username=username))
         #return f"{username}"
 
-    # Ottieni tutte le preferenze utente dal database
-    # preferences = UserPreferences.query.all()
+
 
     return render_template('subscription.html', username=username)  # , preferences=preferences)
 
