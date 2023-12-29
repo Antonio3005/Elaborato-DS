@@ -1,6 +1,8 @@
 #from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+import requests
+import logging
 
 app = Flask(__name__, template_folder='templates')
 
@@ -20,6 +22,25 @@ class User(db.Model):
 with app.app_context():
     db.create_all()
 
+'''
+def send_username(username):
+    # Invia l'username al secondo microservizio
+    url = 'http://subscription_service:5001/'
+    headers = {'Content-Type': 'application/json'}
+    payload = {'username': username}
+
+    logging.debug(f'Sending request to {url} with payload: {payload}')
+
+    response = requests.post(url, json=payload, headers=headers)
+    logging.info(f'Response from {url}: {response.status_code}, {response.text}')
+
+    # Gestisci la risposta del secondo microservizio se necessario
+    if response.status_code == 200:
+        return 'Successo'
+    else:
+        return 'Errore durante l\'invio dell\'username al secondo microservizio'
+
+'''
 @app.route('/')
 def home():
     return render_template('home.html')
@@ -34,7 +55,7 @@ def login():
         user = User.query.filter_by(username=username, password=password).first()
 
         if user:
-            return redirect('http://127.0.0.1:5001/subscription')
+            return redirect('http://0.0.0.0:5001/subscription')
         else:
             return 'Credenziali non valide. Riprova.'
 
@@ -56,7 +77,9 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        return redirect('http://127.0.0.1:5001/subscription')
+        #send_username(username)
+
+        return redirect('http://0.0.0.0:5001/subscription')
 
     return render_template('register.html')
 

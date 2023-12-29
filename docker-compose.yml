@@ -137,12 +137,13 @@ services:
       MYSQL_ROOT_PASSWORD: '12345'
       KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"  # Indirizzo del broker Kafka
       KAFKA_GROUP_ID: "group"
-      MAIL_SERVER: 'an_server'
-      MAIL_PORT: 587
-      MAIL_USE_TLS: 'true'
-      MAIL_USERNAME: 'an'
-      MAIL_PASSWORD: '12345'
-      MAIL_DEFAULT_SENDER: 'antonioinv12@gmail.com'
+      MAIL_SERVER: 'smtp.libero.it'
+      MAIL_PORT: 465
+      MAIL_USE_TLS: False
+      MAIL_USE_SSL: True
+      MAIL_USERNAME: 'angelo-cocuzza@libero.it'
+      MAIL_PASSWORD: 'Bestflights123!'
+      MAIL_DEFAULT_SENDER: 'angelo-cocuzza@libero.it'
     ports:
       - "5003:5003"
     restart: always

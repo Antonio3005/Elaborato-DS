@@ -25,10 +25,13 @@ class UserPreferences(db.Model):
 with app.app_context():
     db.create_all()
 
-@app.route('/subscription', methods=['GET', 'POST'])
+
+@app.route('/subscription', methods=['GET','POST'])
 def subscription():
     if request.method == 'POST':
         # Ottieni i valori inseriti dall'utente
+        #username = request.form.get('username')
+        #username = json_data['username']
         city_from = request.form['city_from']
         city_to = request.form['city_to']
         date_from = request.form['date_from']
@@ -39,7 +42,7 @@ def subscription():
         price_to = request.form['price_to']
 
         # Salva i valori nel database
-        user_preferences = UserPreferences(user_id="angelodileonforte@gmail.com", city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
+        user_preferences = UserPreferences(user_id='antonioinv1@hotmail.it', city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
                                            return_from=return_from,
                                            return_to=return_to,
                                            price_from=price_from,
@@ -48,6 +51,7 @@ def subscription():
         db.session.commit()
 
         return redirect(url_for('subscription'))
+        #return f"{username}"
 
     # Ottieni tutte le preferenze utente dal database
     # preferences = UserPreferences.query.all()

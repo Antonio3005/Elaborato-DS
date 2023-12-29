@@ -24,16 +24,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/sub
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-"""class BestFlights(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), nullable=False)
-    city_from = db.Column(db.String(255), nullable=False)
-    airport_from = db.Column(db.String(255), nullable=False)
-    airport_to = db.Column(db.String(255), nullable=False)
-    city_to = db.Column(db.String(255), nullable=False)
-    departure_date = db.Column(db.String(255), nullable=False)
-    return_date = db.Column(db.String(255), nullable=False)
-    price = db.Column(db.String(255), nullable=False)"""
+#class BestFlights(db.Model):
+#    id = db.Column(db.Integer, primary_key=True)
+#    user_id = db.Column(db.String(255), nullable=False)
+#    city_from = db.Column(db.String(255), nullable=False)
+#    airport_from = db.Column(db.String(255), nullable=False)
+#    airport_to = db.Column(db.String(255), nullable=False)
+#    city_to = db.Column(db.String(255), nullable=False)
+#    departure_date = db.Column(db.String(255), nullable=False)
+#    return_date = db.Column(db.String(255), nullable=False)
+#    price = db.Column(db.String(255), nullable=False)
 class UserPreferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
@@ -133,33 +133,21 @@ def flights():
     print(subscription)
     for sub in subscription:
         iata_from=get_iata(sub.city_from)
-        print(iata_from)
-        logging.debug("Questo è un messaggio di debug.")
+        #logging.debug("Questo è un messaggio di debug.")
         logging.debug(f"Valore di iata: {iata_from}")
         iata_to=get_iata(sub.city_to)
-        print(sub.city_to)
         logging.debug(f"Valore di iata: {iata_to}")
         data=get_flights(iata_from,iata_to,sub.date_from,sub.date_to,sub.return_from,sub.return_to,sub.price_from,sub.price_to)
-        #data.append
-        serialized_data = json.dumps(data).encode('utf-8')
-
-        for flight_data in data['data']:
+        #serialized_data = json.dumps(data).encode('utf-8')
+        for d in data['data']:
         # Aggiungi user_id a ciascun oggetto nel JSON data
-            flight_data['user_id'] = sub.user_id
-            logging.debug(f"Valore di data: {flight_data['user_id']}")
-            logging.debug(f"Valore di data: {flight_data}")
-            serialized_data = json.dumps(flight_data).encode('utf-8')
+            d['user_id'] = sub.user_id
+            #logging.debug(f"Valore di data: {flight_data['user_id']}")
+            logging.debug(f"Valore di data: {d}")
+            serialized_data = json.dumps(d).encode('utf-8')
             producer.produce(kafka_topic, value=serialized_data)
 
-
-    # Serializza e invia ogni oggetto separatamente
-
         producer.flush()
-
-
-
-
-        # Opzionalmente, attendi la conferma dell'avvenuta consegna
 
         """for flight_data in data['data']:
             new_flight = BestFlights(
@@ -173,18 +161,19 @@ def flights():
                 price=flight_data['price']
             )
             db.session.add(new_flight)
-"""
+
     # Commit the changes to the database
     db.session.commit()
-
+    """
     return 'Eseguito con successo'
 @app.route('/', methods=['GET'])
 def schedule_flights():
-    schedule.every().day.at("23:52").do(flights)
+    #schedule.every().day.at("10:28").do(flights)
 
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    #while True:
+    #    schedule.run_pending()
+    #    time.sleep(1)
+    flights()
 
     return 'Eseguito con successo'
 
