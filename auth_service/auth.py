@@ -55,7 +55,7 @@ def login():
         user = User.query.filter_by(username=username, password=password).first()
 
         if user:
-            return redirect('http://0.0.0.0:5001/subscription')
+            return redirect(f'http://0.0.0.0:5001/subscription/{username}')
         else:
             return 'Credenziali non valide. Riprova.'
 
@@ -79,7 +79,7 @@ def register():
 
         #send_username(username)
 
-        return redirect('http://0.0.0.0:5001/subscription')
+        return redirect(f'http://0.0.0.0:5001/subscription/{username}')
 
     return render_template('register.html')
 
