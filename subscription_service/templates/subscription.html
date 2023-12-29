@@ -9,7 +9,7 @@
 <h1>Weather Preferences</h1>
 
 <h2>Inserisci le tue preferenze</h2>
-<form method="post" action="{{ url_for('subscription') }}">
+<form method="post" action="{{ url_for('subscription', username=username) }}">
     <label for="city_from">Città di partenza:</label>
     <input type="text" name="city_from" required><br>
 
