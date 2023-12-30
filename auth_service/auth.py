@@ -13,7 +13,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False, unique=True)
@@ -22,66 +21,63 @@ class User(db.Model):
 with app.app_context():
     db.create_all()
 
-'''
-def send_username(username):
-    # Invia l'username al secondo microservizio
-    url = 'http://subscription_service:5001/'
-    headers = {'Content-Type': 'application/json'}
-    payload = {'username': username}
 
-    logging.debug(f'Sending request to {url} with payload: {payload}')
+def is_valid_password(password):
+    return len(password) >= 8
 
-    response = requests.post(url, json=payload, headers=headers)
-    logging.info(f'Response from {url}: {response.status_code}, {response.text}')
-
-    # Gestisci la risposta del secondo microservizio se necessario
-    if response.status_code == 200:
-        return 'Successo'
-    else:
-        return 'Errore durante l\'invio dell\'username al secondo microservizio'
-
-'''
 @app.route('/')
 def home():
     return render_template('home.html')
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    try:
+        if request.method == 'POST':
+            username = request.form['username']
+            password = request.form['password']
 
-        user = User.query.filter_by(username=username, password=password).first()
+            user = User.query.filter_by(username=username, password=password).first()
 
-        if user:
-            return redirect(f'http://0.0.0.0:5001/subscription/{username}')
-        else:
-            return 'Credenziali non valide. Riprova.'
+            if user:
+                return redirect(f'http://0.0.0.0:5001/subscription/{username}')
+            else:
+                return 'Credenziali non valide. Riprova.'
 
-    return render_template('login.html')
+        return render_template('login.html')
+    except Exception as e:
+        # Registra l'errore e restituisci un messaggio di errore generico
+        logging.error(f"Errore durante il login: {e}")
+        return 'Si è verificato un errore durante il login. Riprova più tardi.'
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    try:
+        if request.method == 'POST':
+            username = request.form['username']
+            password = request.form['password']
 
-        existing_user = User.query.filter_by(username=username).first()
+            if not is_valid_password(password):
+                return 'La password deve essere lunga almeno 8 caratteri.'
 
-        if existing_user:
-            return 'Questo username è già stato utilizzato. Scegli un altro.'
+            existing_user = User.query.filter_by(username=username).first()
 
-        new_user = User(username=username, password=password)
-        db.session.add(new_user)
-        db.session.commit()
+            if existing_user:
+                return 'Questo username è già stato utilizzato. Scegli un altro.'
 
-        #send_username(username)
+            new_user = User(username=username, password=password)
+            db.session.add(new_user)
+            db.session.commit()
 
-        return redirect(f'http://0.0.0.0:5001/subscription/{username}')
+            #send_username(username)
 
-    return render_template('register.html')
+            return redirect(f'http://0.0.0.0:5001/subscription/{username}')
+
+        return render_template('register.html')
+    except Exception as e:
+    # Registra l'errore e restituisci un messaggio di errore generico
+        logging.error(f"Errore durante la registrazione: {e}")
+        return 'Si è verificato un errore durante la registrazione. Riprova più tardi.'
 
 
 if __name__ == '__main__':

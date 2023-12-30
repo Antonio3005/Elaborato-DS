@@ -52,130 +52,128 @@ with app.app_context():
 
 def get_iata(city):
 
-    url = 'https://api.tequila.kiwi.com/locations/query'
-    headers = {
-        'accept': 'application/json',
-        'apikey': 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
-    }
+    try:
+        url = 'https://api.tequila.kiwi.com/locations/query'
+        headers = {
+            'accept': 'application/json',
+            'apikey': 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
+        }
 
-    params = {
-        'term': city,
-        'locale': 'it-IT',
-        'location_types': 'city',
-        'limit': 10,
-        'active_only': True
-    }
+        params = {
+            'term': city,
+            'locale': 'it-IT',
+            'location_types': 'city',
+            'limit': 10,
+            'active_only': True
+        }
 
-    response = requests.get(url, params=params, headers=headers)
+        response = requests.get(url, params=params, headers=headers)
 
-    if response.status_code == 200:
-        # Analizza la risposta JSON
-        try:
-            data = response.json()
-        # Assicurati che l'array "locations" sia presente e non vuoto
-            if "locations" in data and data["locations"]:
-                # Estrai il valore associato alla chiave "code"
-                iata = data["locations"][0]["code"]
-                print(iata)
-            else:
-                print("Array 'locations' vuoto o assente nella risposta dell'API.")
-        except json.JSONDecodeError:
-            print("Errore nella decodifica della risposta JSON.")
+        if response.status_code == 200:
+            # Analizza la risposta JSON
+            try:
+                data = response.json()
+            # Assicurati che l'array "locations" sia presente e non vuoto
+                if "locations" in data and data["locations"]:
+                    # Estrai il valore associato alla chiave "code"
+                    iata = data["locations"][0]["code"]
+                    print(iata)
+                else:
+                    print("Array 'locations' vuoto o assente nella risposta dell'API.")
+            except json.JSONDecodeError:
+                print("Errore nella decodifica della risposta JSON.")
 
-    else:
-        # Se la richiesta non è andata a buon fine, stampa il codice di stato
-        print(f"Errore nella richiesta. Codice di stato: {response.status_code}")
-
-    return iata
-
+        else:
+            # Se la richiesta non è andata a buon fine, stampa il codice di stato
+            print(f"Errore nella richiesta. Codice di stato: {response.status_code}")
+        return iata
+    except Exception as e:
+        print(f"Errore durante l'ottenimento di IATA per la città {city}: {e}")
+        return None
 
 # Function to get flights and insert into the database
 def get_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, price_from, price_to):
-    url = 'https://api.tequila.kiwi.com/v2/search'
-    headers = {
-        'accept': 'application/json',
-        'apikey': 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
-    }
+    try:
+        url = 'https://api.tequila.kiwi.com/v2/search'
+        headers = {
+            'accept': 'application/json',
+            'apikey': 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
+        }
 
-    params = {
-        'fly_from': iata_from,
-        'fly_to': iata_to,
-        'date_from': date_from,
-        'date_to': date_to,
-        'return_from': return_from,
-        'return_to': return_to,
-        'adults': 1,
-        'adult_hand_bag': 1,
-        'partner_market': 'it',
-        'price_from': price_from,
-        'price_to': price_to,
-        'vehicle_type': 'aircraft',
-        'sort': 'price',
-        'limit': 2
-    }
+        params = {
+            'fly_from': iata_from,
+            'fly_to': iata_to,
+            'date_from': date_from,
+            'date_to': date_to,
+            'return_from': return_from,
+            'return_to': return_to,
+            'adults': 1,
+            'adult_hand_bag': 1,
+            'partner_market': 'it',
+            'price_from': price_from,
+            'price_to': price_to,
+            'vehicle_type': 'aircraft',
+            'sort': 'price',
+            'limit': 2
+        }
 
-    # Make the API request
-    response = requests.get(url, params=params, headers=headers)
+        # Make the API request
+        response = requests.get(url, params=params, headers=headers)
 
-    if response.status_code == 200:
-        data = response.json()
-
-        # Iterate over the data and insert into the database
-
-    else:
-        print(f"Error: {response.status_code}, {response.text}")
-    return data
-
+        if response.status_code == 200:
+            data = response.json()
+            # Iterate over the data and insert into the database
+        else:
+            print(f"Error: {response.status_code}, {response.text}")
+        return data
+    except Exception as e:
+        print(f"Errore durante l'ottenimento dei voli: {e}")
+        return None
 
 def flights():
+    try:
+        subscription = UserPreferences.query.all()
+        for sub in subscription:
+            iata_from = get_iata(sub.city_from)
+            if iata_from is None:
+                continue  # Passa al prossimo record in caso di errore
 
-    subscription = UserPreferences.query.all()
-    print(subscription)
-    for sub in subscription:
-        iata_from=get_iata(sub.city_from)
-        #logging.debug("Questo è un messaggio di debug.")
-        logging.debug(f"Valore di iata: {iata_from}")
-        iata_to=get_iata(sub.city_to)
-        logging.debug(f"Valore di iata: {iata_to}")
-        data=get_flights(iata_from,iata_to,sub.date_from,sub.date_to,sub.return_from,sub.return_to,sub.price_from,sub.price_to)
-        #serialized_data = json.dumps(data).encode('utf-8')
-        for d in data['data']:
-        # Aggiungi user_id a ciascun oggetto nel JSON data
-            d['user_id'] = sub.user_id
-            #logging.debug(f"Valore di data: {flight_data['user_id']}")
-            logging.debug(f"Valore di data: {d}")
-            serialized_data = json.dumps(d).encode('utf-8')
-            producer.produce(kafka_topic, value=serialized_data)
+            logging.debug(f"Valore di iata_from: {iata_from}")
 
-        producer.flush()
+            iata_to = get_iata(sub.city_to)
+            if iata_to is None:
+                continue  # Passa al prossimo record in caso di errore
 
-        """for flight_data in data['data']:
-            new_flight = BestFlights(
-                user_id=sub.user_id,  # You need to provide the user_id
-                city_from=flight_data['cityFrom'],
-                airport_from=flight_data['flyFrom'],
-                airport_to=flight_data['flyTo'],
-                city_to=flight_data['cityTo'],
-                departure_date=flight_data['local_departure'],
-                return_date=flight_data['local_arrival'],
-                price=flight_data['price']
-            )
-            db.session.add(new_flight)
+            logging.debug(f"Valore di iata_to: {iata_to}")
 
-    # Commit the changes to the database
-    db.session.commit()
-    """
+            data = get_flights(iata_from, iata_to, sub.date_from, sub.date_to, sub.return_from, sub.return_to,
+                               sub.price_from, sub.price_to)
+
+            if data is not None:
+                for d in data['data']:
+                    d['user_id'] = sub.user_id
+                    logging.debug(f"Valore di data: {d}")
+                    serialized_data = json.dumps(d).encode('utf-8')
+                    producer.produce(kafka_topic, value=serialized_data)
+
+                producer.flush()
+    except Exception as e:
+        print(f"Errore durante l'esecuzione della funzione flights: {e}")
+
     return 'Eseguito con successo'
 @app.route('/', methods=['GET'])
 def schedule_flights():
-    #schedule.every().day.at("10:28").do(flights)
+    try:
+        flights()
+        #schedule.every().day.at("10:28").do(flights)
 
-    #while True:
-    #    schedule.run_pending()
-    #    time.sleep(1)
-    flights()
+        #while True:
+        #    schedule.run_pending()
+        #    time.sleep(1)
+        return 'Eseguito con successo'
+    except Exception as e:
+        return f"Errore durante l'esecuzione della funzione schedule_flights: {e}"
 
-    return 'Eseguito con successo'
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5002)

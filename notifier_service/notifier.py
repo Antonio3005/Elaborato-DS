@@ -34,6 +34,9 @@ conf = {
 
 
 # Configurazione Flask-Mail
+#per maggiore sicurezza utilizzare le variabili
+#di ambiente del docker-compose in questo modo:
+#my_variable = os.environ.get('MY_VARIABLE')
 app.config['MAIL_SERVER'] = 'smtp.libero.it'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = False
@@ -66,119 +69,116 @@ with app.app_context():
 def save_to_database(flight_data):
 
     logging.debug(f"ciao {flight_data['route'][0]}")
+    try:
+        new_flight = BestFlights(
+            user_id=flight_data['user_id'],
+            d_city_from=flight_data['route'][0]['cityFrom'],
+            d_airport_from=flight_data['route'][0]['flyFrom'],
+            d_airport_to=flight_data['route'][0]['flyTo'],
+            d_city_to=flight_data['route'][0]['cityTo'],
+            r_city_from=flight_data['route'][1]['cityFrom'],
+            r_airport_from=flight_data['route'][1]['flyFrom'],
+            r_airport_to=flight_data['route'][1]['flyTo'],
+            r_city_to=flight_data['route'][1]['cityTo'],
+            departure_date=flight_data['route'][0]['local_departure'],
+            return_date=flight_data['route'][1]['local_departure'],
+            price=flight_data['price']
+        )
 
-    new_flight = BestFlights(
-        user_id=flight_data['user_id'],
-        d_city_from=flight_data['route'][0]['cityFrom'],
-        d_airport_from=flight_data['route'][0]['flyFrom'],
-        d_airport_to=flight_data['route'][0]['flyTo'],
-        d_city_to=flight_data['route'][0]['cityTo'],
-        r_city_from=flight_data['route'][1]['cityFrom'],
-        r_airport_from=flight_data['route'][1]['flyFrom'],
-        r_airport_to=flight_data['route'][1]['flyTo'],
-        r_city_to=flight_data['route'][1]['cityTo'],
-        departure_date=flight_data['route'][0]['local_departure'],
-        return_date=flight_data['route'][1]['local_departure'],
-        price=flight_data['price']
-    )
-
-    #logging.debug(f"ciao 2 {new_flight}")
-    db.session.add(new_flight)
-    db.session.commit()
-    return 'Database aggiornato'
+        #logging.debug(f"ciao 2 {new_flight}")
+        db.session.add(new_flight)
+        db.session.commit()
+        return 'Database aggiornato'
+    except Exception as e:
+        return f'Errore durante il salvataggio nel database: {e}'
 
 def send_notification_email(to_email, subject, body):
     try:
-        msg = Message(subject = subject,
-                      recipients=[to_email])
+        msg = Message(subject = subject, recipients=[to_email])
         msg.body = body
         mail.send(msg)
         return 'Email inviata con successo!'
     except Exception as e:
         return 'Errore durante l\'invio dell\'email: ' + str(e)
 
-
-
 def process_flight_data(flight_data):
-
+    try:
     #logging.debug(f"process_flight_dats : {flight_data}")
-    max_price = float(flight_data['price'])  # Converti il prezzo in un numero a virgola mobile
-    existing_bf = BestFlights.query.filter_by(
-        user_id=flight_data['user_id'],
-        d_city_from=flight_data['route'][0]['cityFrom'],
-        d_airport_from=flight_data['route'][0]['flyFrom'],
-        d_airport_to=flight_data['route'][0]['flyTo'],
-        d_city_to=flight_data['route'][0]['cityTo'],
-        r_city_from=flight_data['route'][1]['cityFrom'],
-        r_airport_from=flight_data['route'][1]['flyFrom'],
-        r_airport_to=flight_data['route'][1]['flyTo'],
-        r_city_to=flight_data['route'][1]['cityTo'],
-        departure_date=flight_data['route'][0]['local_departure'],
-        return_date=flight_data['route'][1]['local_departure']
-    ).all()
+        max_price = float(flight_data['price'])  # Converti il prezzo in un numero a virgola mobile
+        existing_bf = BestFlights.query.filter_by(
+            user_id=flight_data['user_id'],
+            d_city_from=flight_data['route'][0]['cityFrom'],
+            d_airport_from=flight_data['route'][0]['flyFrom'],
+            d_airport_to=flight_data['route'][0]['flyTo'],
+            d_city_to=flight_data['route'][0]['cityTo'],
+            r_city_from=flight_data['route'][1]['cityFrom'],
+            r_airport_from=flight_data['route'][1]['flyFrom'],
+            r_airport_to=flight_data['route'][1]['flyTo'],
+            r_city_to=flight_data['route'][1]['cityTo'],
+            departure_date=flight_data['route'][0]['local_departure'],
+            return_date=flight_data['route'][1]['local_departure']
+        ).all()
 
-    logging.debug(f"{existing_bf}")
+        logging.debug(f"{existing_bf}")
 
-    if existing_bf:
-        for bf in existing_bf:
-            if float(bf.price) > max_price:
-                logging.debug(f"Prezzo {bf.price} maggiore o uguale a {max_price}")
-                logging.debug("Nuove offerte")
-                db.session.delete(bf)
-                save_to_database(flight_data)
-                body = (f"Ci sono nuove offerte di volo disponibili per le tue richieste: \n"
-                        "Andata:\n"
-                        f"Città di partenza {flight_data['route'][0]['cityFrom']}\n"
-                        f"Aeroporto di partenza {flight_data['route'][0]['flyFrom']}\n"
-                        f"Aeroporto di arrivo {flight_data['route'][0]['flyTo']}\n"
-                        f"Città di arrivo {flight_data['route'][0]['cityTo']}\n"
-                        f"Data di partenza {flight_data['route'][0]['local_departure']}\n"
-                        "Ritorno:\n"
-                        f"Città di partenza {flight_data['route'][1]['cityFrom']}\n"
-                        f"Aeroporto di partenza {flight_data['route'][1]['flyFrom']}\n"
-                        f"Aeroporto di arrivo {flight_data['route'][1]['flyTo']}\n"
-                        f"Città di arrivo {flight_data['route'][1]['cityTo']}\n"
-                        f"Data di ritorno {flight_data['route'][1]['local_departure']}\n"
-                        f"Prezzo {flight_data['price']}\n") #da modificare
-            else:
-                logging.debug("Per oggi niente offerte")
-                logging.debug(f"Volo al prezzo di {max_price}")
-                body = (f"Per oggi niente offerte") #da modificare
-                #save_to_database(flight_data)
+        if existing_bf:
+            for bf in existing_bf:
+                if float(bf.price) > max_price:
+                    logging.debug(f"Prezzo {bf.price} maggiore o uguale a {max_price}")
+                    logging.debug("Nuove offerte")
+                    db.session.delete(bf)
+                    save_to_database(flight_data)
+                    body = (f"Ci sono nuove offerte di volo disponibili per le tue richieste: \n"
+                            "Andata:\n"
+                            f"Città di partenza {flight_data['route'][0]['cityFrom']}\n"
+                            f"Aeroporto di partenza {flight_data['route'][0]['flyFrom']}\n"
+                            f"Aeroporto di arrivo {flight_data['route'][0]['flyTo']}\n"
+                            f"Città di arrivo {flight_data['route'][0]['cityTo']}\n"
+                            f"Data di partenza {flight_data['route'][0]['local_departure']}\n"
+                            "Ritorno:\n"
+                            f"Città di partenza {flight_data['route'][1]['cityFrom']}\n"
+                            f"Aeroporto di partenza {flight_data['route'][1]['flyFrom']}\n"
+                            f"Aeroporto di arrivo {flight_data['route'][1]['flyTo']}\n"
+                            f"Città di arrivo {flight_data['route'][1]['cityTo']}\n"
+                            f"Data di ritorno {flight_data['route'][1]['local_departure']}\n"
+                            f"Prezzo {flight_data['price']}\n") #da modificare
+                else:
+                    logging.debug("Per oggi niente offerte")
+                    logging.debug(f"Volo al prezzo di {max_price}")
+                    body = (f"Per oggi niente offerte") #da modificare
+                    #save_to_database(flight_data)
 
-    else:
-        save_to_database(flight_data)
-        body = (f"Ci sono nuove offerte di volo disponibili per le tue richieste: \n"
-                "Andata:\n"
-                f"Città di partenza {flight_data['route'][0]['cityFrom']}\n"
-                f"Aeroporto di partenza {flight_data['route'][0]['flyFrom']}\n"
-                f"Aeroporto di arrivo {flight_data['route'][0]['flyTo']}\n"
-                f"Città di arrivo {flight_data['route'][0]['cityTo']}\n"
-                f"Data di partenza {flight_data['route'][0]['local_departure']}\n"
-                "Ritorno:\n"
-                f"Città di partenza {flight_data['route'][1]['cityFrom']}\n"
-                f"Aeroporto di partenza {flight_data['route'][1]['flyFrom']}\n"
-                f"Aeroporto di arrivo {flight_data['route'][1]['flyTo']}\n"
-                f"Città di arrivo {flight_data['route'][1]['cityTo']}\n"
-                f"Data di ritorno {flight_data['route'][1]['local_departure']}\n"
-                f"Prezzo {flight_data['price']}\n") #da modificare
+        else:
+            save_to_database(flight_data)
+            body = (f"Ci sono nuove offerte di volo disponibili per le tue richieste: \n"
+                    "Andata:\n"
+                    f"Città di partenza {flight_data['route'][0]['cityFrom']}\n"
+                    f"Aeroporto di partenza {flight_data['route'][0]['flyFrom']}\n"
+                    f"Aeroporto di arrivo {flight_data['route'][0]['flyTo']}\n"
+                    f"Città di arrivo {flight_data['route'][0]['cityTo']}\n"
+                    f"Data di partenza {flight_data['route'][0]['local_departure']}\n"
+                    "Ritorno:\n"
+                    f"Città di partenza {flight_data['route'][1]['cityFrom']}\n"
+                    f"Aeroporto di partenza {flight_data['route'][1]['flyFrom']}\n"
+                    f"Aeroporto di arrivo {flight_data['route'][1]['flyTo']}\n"
+                    f"Città di arrivo {flight_data['route'][1]['cityTo']}\n"
+                    f"Data di ritorno {flight_data['route'][1]['local_departure']}\n"
+                    f"Prezzo {flight_data['price']}\n") #da modificare
 
-    # Esegui il commit delle modifiche al database
-    db.session.commit()
+        # Esegui il commit delle modifiche al database
+        db.session.commit()
 
-    to_email = flight_data['user_id']  # Specifica l'indirizzo email del destinatario non funziona quando si prende con le parentesi quadre dal json stesso problema nel database vedere come risolverlo
-    subject = 'Nuove offerte di volo disponibili!'
-
-    #logging.debug(f'body: {body} , to: {to_email}')
-    send_notification_email(to_email, subject, body)
-
+        to_email = flight_data['user_id']  # Specifica l'indirizzo email del destinatario non funziona quando si prende con le parentesi quadre dal json stesso problema nel database vedere come risolverlo
+        subject = 'Nuove offerte di volo disponibili!'
+        send_notification_email(to_email, subject, body)
+    except Exception as e:
+        return f'Errore durante l\'elaborazione dei dati di volo: {e}'
 
 def consume_messages(c):
     try:
         while True:
             # Consuma i messaggi
             msg = c.poll(0.1)
-
             if msg is None:
                 continue
             if msg.error():
@@ -190,13 +190,8 @@ def consume_messages(c):
 
             # Elabora il messaggio
             flight_data = msg.value()
-            #logging.debug(type(flight_data))
             flight_data_string = flight_data.decode('utf-8')
-            #logging.debug(type(flight_data_string))
             data = json.loads(flight_data_string)
-            #logging.debug(type(data))
-            #data = json.loads(flight_data.decode('utf-8'))
-            #logging.debug(f"data : {data}")
             process_flight_data(data)
 
     except Exception as e:
@@ -205,14 +200,6 @@ def consume_messages(c):
         # Chiudi il consumatore alla fine
         c.close()
 
-
-#def trigger_api_and_consume_messages():
-#    response = requests.get('http://localhost:5002/')  # Chiamata all'API Service per ottenere dati aggiornati
-#    if response.status_code == 200:
-#        consume_messages()
-
-# Scheduler per eseguire trigger_api_and_consume_messages ogni giorno alle 8:00 AM
-
 @app.route('/', methods=['GET'])
 def best_flights():
     consumer = Consumer(**conf)
@@ -220,6 +207,12 @@ def best_flights():
 
     try:
         consume_messages(consumer)
+        #schedule.every().day.at("10:28").do(consume_message(consumer))
+
+        #while True:
+        #    schedule.run_pending()
+        #    time.sleep(1)
+        return "Successo"
     except Exception as e:
         print(f"Errore durante la lettura dei messaggi: {e}")
     finally:
@@ -230,6 +223,3 @@ def best_flights():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5003)
-#    while True:
-#        schedule.run_pending()
-#        time.sleep(1)
