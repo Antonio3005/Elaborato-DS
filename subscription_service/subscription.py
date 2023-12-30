@@ -38,18 +38,19 @@ def validate_preferences(city_from, city_to, date_from, date_to, return_from, re
     if float(price_from) < 1 or float(price_to) < 1:
         raise ValueError("Il prezzo non può essere minore di 1.")
 
-    # Verifica che le date siano nel formato corretto e non antecedenti a oggi
     today = datetime.now()
 
-    date_from = is_valid_date(date_from)
-    date_to = is_valid_date(date_to)
-    return_from = is_valid_date(return_from)
-    return_to = is_valid_date(return_to)
+    # Verifica che le date siano nel formato corretto e non antecedenti a oggi
+    date_from = datetime.strptime(date_from, "%d/%m/%Y")
+    date_to = datetime.strptime(date_to, "%d/%m/%Y")
 
-    if not date_from or not date_to or date_from < today or date_to < today:
+    if not is_valid_date(date_from.strftime("%d/%m/%Y")) or not is_valid_date(date_to.strftime("%d/%m/%Y")) or date_from < today or date_to < today:
         raise ValueError("Formato data non valido o data antecedente a oggi.")
 
-    if not return_from or not return_to or return_from < today or return_to < today:
+    return_from = datetime.strptime(return_from, "%d/%m/%Y")
+    return_to = datetime.strptime(return_to, "%d/%m/%Y")
+
+    if not is_valid_date(return_from.strftime("%d/%m/%Y")) or not is_valid_date(return_to.strftime("%d/%m/%Y")) or return_from < today or return_to < today:
         raise ValueError("Formato data di ritorno non valido o data antecedente a oggi.")
 
     # Verifica che le date di ritorno non siano antecedenti a quelle di andata
