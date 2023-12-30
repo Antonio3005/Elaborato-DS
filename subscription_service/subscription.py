@@ -47,6 +47,7 @@ def validate_preferences(city_from, city_to, date_from, date_to, return_from, re
     if not is_valid_date(date_from.strftime("%d/%m/%Y")) or not is_valid_date(date_to.strftime("%d/%m/%Y")) or date_from < today or date_to < today:
         raise ValueError("Formato data non valido o data antecedente a oggi.")
 
+
     return_from = datetime.strptime(return_from, "%d/%m/%Y")
     return_to = datetime.strptime(return_to, "%d/%m/%Y")
 
