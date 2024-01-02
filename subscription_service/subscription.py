@@ -47,7 +47,6 @@ def validate_preferences(city_from, city_to, date_from, date_to, return_from, re
     if not is_valid_date(date_from.strftime("%d/%m/%Y")) or not is_valid_date(date_to.strftime("%d/%m/%Y")) or date_from < today or date_to < today:
         raise ValueError("Formato data non valido o data antecedente a oggi.")
 
-
     return_from = datetime.strptime(return_from, "%d/%m/%Y")
     return_to = datetime.strptime(return_to, "%d/%m/%Y")
 
@@ -55,7 +54,7 @@ def validate_preferences(city_from, city_to, date_from, date_to, return_from, re
         raise ValueError("Formato data di ritorno non valido o data antecedente a oggi.")
 
     # Verifica che le date di ritorno non siano antecedenti a quelle di andata
-    if return_from < date_from or return_to < date_to:
+    if return_from < date_from or return_to < date_to or date_to < date_from or return_to < return_from:
         raise ValueError("Le date di ritorno non possono essere antecedenti a quelle di andata.")
 
     # Verifica che city_from e city_to siano diverse
@@ -65,6 +64,7 @@ def validate_preferences(city_from, city_to, date_from, date_to, return_from, re
     # Verifica che price_from non sia maggiore di price_to
     if float(price_from) > float(price_to):
         raise ValueError("Il prezzo minimo non può essere maggiore del prezzo massimo.")
+
 
 
 
