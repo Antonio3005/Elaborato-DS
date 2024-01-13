@@ -26,6 +26,11 @@ class UserPreferences(db.Model):
 with app.app_context():
     db.create_all()
 
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    # Redirect to the login page or any other desired page
+    return redirect('http://0.0.0.0:5000/')
 def is_valid_date(date_str):
     try:
         datetime.strptime(date_str, "%d/%m/%Y")
