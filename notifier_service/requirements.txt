@@ -10,3 +10,4 @@ confluent-kafka==2.3.0
 flask-mail==0.9.1
 schedule==1.2.1
 requests==2.31.0
+prometheus-flask-exporter==0.23.0

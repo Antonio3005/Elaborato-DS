@@ -3,9 +3,10 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import logging
+from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__, template_folder='templates')
-
+metrics = PrometheusMetrics(app)
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_users/users"
@@ -36,11 +37,14 @@ def login():
             username = request.form['username']
             password = request.form['password']
 
+            metrics.counter('login_attempts_total', 'Numero totale di tentativi di login').inc()  # Incrementa il contatore di tentativi di login
             user = User.query.filter_by(username=username, password=password).first()
 
             if user:
+                metrics.counter('successful_logins_total', 'Numero totale di login riusciti').inc()  # Incrementa il contatore di login riusciti
                 return redirect(f'http://0.0.0.0:5001/subscription/{username}')
             else:
+                metrics.counter('failed_logins_total', 'Numero totale di login falliti').inc()  # Incrementa il contatore di login falliti
                 return 'Credenziali non valide. Riprova.'
 
         return render_template('login.html')
@@ -63,6 +67,7 @@ def register():
             existing_user = User.query.filter_by(username=username).first()
 
             if existing_user:
+                metrics.counter('registration_attempts_email_exists_total', 'Numero totale di tentativi di registrazione con email già presente').inc()
                 return 'Questo username è già stato utilizzato. Scegli un altro.'
 
             new_user = User(username=username, password=password)
