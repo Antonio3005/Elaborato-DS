@@ -1,5 +1,6 @@
 #from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import logging
@@ -7,6 +8,7 @@ from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__, template_folder='templates')
 metrics = PrometheusMetrics(app)
+CORS(app)
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_users/users"
@@ -43,7 +45,6 @@ def api_login():
 
             if user:
                 #metrics.counter('successful_logins_total', 'Numero totale di login riusciti').inc()
-                logging.error(f"utente trovato {user}")
                 return jsonify({"success": True, "message": "Login riuscito", "username": username})
             else:
                 #metrics.counter('failed_logins_total', 'Numero totale di login falliti').inc()

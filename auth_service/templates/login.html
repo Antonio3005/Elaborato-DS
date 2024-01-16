@@ -1,4 +1,12 @@
-<!-- Un esempio di form HTML per il login -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example HTML</title>
+</head>
+<body>
+
 <form id="loginForm">
     <label for="username">Username:</label>
     <input type="text" id="username" name="username" required>
@@ -6,15 +14,17 @@
     <label for="password">Password:</label>
     <input type="password" id="password" name="password" required>
 
-    <button type="button" onclick="performLogin()">Login</button>
+    <button type="button" onclick="login()">Login</button>
 </form>
 
-<!-- Un div per visualizzare i messaggi di risposta del login -->
-<div id="loginResult"></div>
-
 <script>
-    function performLogin() {
-        const formData = new FormData(document.getElementById('loginForm'));
+    function login() {
+        var username = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+
+        var formData = new FormData();
+        formData.append("username", username);
+        formData.append("password", password);
 
         fetch('http://localhost:5000/api/login', {
             method: 'POST',
@@ -22,17 +32,22 @@
         })
             .then(response => response.json())
             .then(data => {
+                // Gestisci la risposta qui
+                console.log(data);
 
                 if (data.success) {
-                    document.getElementById('loginResult').innerHTML = `Login riuscito per l'utente ${data.username}`;
+                    // Esegui azioni di successo
+                    alert(data.message);
                 } else {
-                    document.getElementById('loginResult').innerHTML = `Errore durante il login: ${data.message}`;
+                    // Esegui azioni in caso di errore
+                    alert(data.message);
                 }
             })
             .catch(error => {
-                console.error('Errore durante la richiesta di login:', error);
-                document.getElementById('loginResult').innerHTML = 'Si è verificato un errore durante il login. Riprova più tardi.';
+                console.error('Errore durante la richiesta:', error);
             });
     }
 </script>
 
+</body>
+</html>
