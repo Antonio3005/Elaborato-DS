@@ -5,6 +5,9 @@ volumes:
   mysql_data_subscription:
   mysql_data_bestflights:
 
+networks:
+  mainetwork:
+
 services:
   mysql_users:
     image: mysql:latest
@@ -16,6 +19,8 @@ services:
       MYSQL_PASSWORD: '12345'
     ports:
       - "3306:3306"
+    networks:
+      - mainetwork
     volumes:
       - mysql_data_users:/var/lib/mysql
     restart: always
@@ -32,6 +37,8 @@ services:
       MYSQL_ROOT_PASSWORD: '12345'
     ports:
       - "5000:5000"
+    networks:
+      - mainetwork
     restart: always
     depends_on:
       - mysql_users
@@ -46,6 +53,8 @@ services:
       MYSQL_PASSWORD: '12345'
     ports:
       - "9091:3306"
+    networks:
+      - mainetwork
     volumes:
      - mysql_data_subscription:/var/lib/mysql
     restart: always
@@ -62,6 +71,8 @@ services:
       MYSQL_ROOT_PASSWORD: '12345'
     ports:
       - "5001:5001"
+    networks:
+      - mainetwork
     restart: always
     depends_on:
       - mysql_subscription
@@ -74,6 +85,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      - mainetwork
     expose:
       - "2181"
     restart: always
@@ -84,6 +97,8 @@ services:
       - zookeeper
     ports:
       - 29092:29092
+    networks:
+      - mainetwork
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -106,6 +121,8 @@ services:
       KAFKA_GROUP: 'group'
     ports:
       - "5002:5002"
+    networks:
+      - mainetwork
     restart: always
     depends_on:
       - mysql_subscription
@@ -121,6 +138,8 @@ services:
       MYSQL_PASSWORD: '12345'
     ports:
       - "9092:3306"
+    networks:
+      - mainetwork
     volumes:
       - mysql_data_bestflights:/var/lib/mysql
     restart: always
@@ -146,6 +165,8 @@ services:
       MAIL_DEFAULT_SENDER: 'angelo-cocuzza@libero.it'
     ports:
       - "5003:5003"
+    networks:
+      - mainetwork
     restart: always
     depends_on:
       - mysql_bestflights
@@ -155,6 +176,8 @@ services:
     image: google/cadvisor:latest
     ports:
       - "8080:8080"
+    networks:
+      - mainetwork
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
@@ -165,11 +188,15 @@ services:
     image: prom/node-exporter:latest
     ports:
       - "9100:9100"
+    networks:
+      - mainetwork
 
   prometheus:
     image: prom/prometheus:latest
     ports:
       - "9090:9090"
+    networks:
+      - mainetwork
     volumes:
       - ./prometheus:/etc/prometheus
     command:

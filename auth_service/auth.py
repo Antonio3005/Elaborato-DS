@@ -1,5 +1,5 @@
 #from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import logging
@@ -26,63 +26,58 @@ with app.app_context():
 def is_valid_password(password):
     return len(password) >= 8
 
-@app.route('/')
-def home():
-    return render_template('home.html')
+# ... (import ed altro codice)
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+@app.route('/api/login', methods=['POST'])
+def api_login():
     try:
         if request.method == 'POST':
             username = request.form['username']
             password = request.form['password']
 
-            metrics.counter('login_attempts_total', 'Numero totale di tentativi di login').inc()  # Incrementa il contatore di tentativi di login
+            logging.error(f"Data: {username},,{password}")
+
+
+        #metrics.counter('login_attempts_total', 'Numero totale di tentativi di login').inc()
             user = User.query.filter_by(username=username, password=password).first()
 
             if user:
-                metrics.counter('successful_logins_total', 'Numero totale di login riusciti').inc()  # Incrementa il contatore di login riusciti
-                return redirect(f'http://0.0.0.0:5001/subscription/{username}')
+                #metrics.counter('successful_logins_total', 'Numero totale di login riusciti').inc()
+                logging.error(f"utente trovato {user}")
+                return jsonify({"success": True, "message": "Login riuscito", "username": username})
             else:
-                metrics.counter('failed_logins_total', 'Numero totale di login falliti').inc()  # Incrementa il contatore di login falliti
-                return 'Credenziali non valide. Riprova.'
-
-        return render_template('login.html')
+                #metrics.counter('failed_logins_total', 'Numero totale di login falliti').inc()
+                return jsonify({"success": False, "message": "Credenziali non valide. Riprova."})
     except Exception as e:
-        # Registra l'errore e restituisci un messaggio di errore generico
         logging.error(f"Errore durante il login: {e}")
-        return 'Si è verificato un errore durante il login. Riprova più tardi.'
+        return jsonify({"success": False, "message": "Si è verificato un errore durante il login. Riprova più tardi."})
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
+@app.route('/api/register', methods=['POST'])
+def api_register():
     try:
         if request.method == 'POST':
             username = request.form['username']
             password = request.form['password']
 
             if not is_valid_password(password):
-                return 'La password deve essere lunga almeno 8 caratteri.'
+                return jsonify({"success": False, "message": "La password deve essere lunga almeno 8 caratteri."})
 
             existing_user = User.query.filter_by(username=username).first()
 
             if existing_user:
-                metrics.counter('registration_attempts_email_exists_total', 'Numero totale di tentativi di registrazione con email già presente').inc()
-                return 'Questo username è già stato utilizzato. Scegli un altro.'
+                #metrics.counter('registration_attempts_email_exists_total', 'Numero totale di tentativi di registrazione con email già presente').inc()
+                return jsonify({"success": False, "message": "Questo username è già stato utilizzato. Scegli un altro."})
 
             new_user = User(username=username, password=password)
             db.session.add(new_user)
             db.session.commit()
 
-            #send_username(username)
-
-            return redirect(f'http://0.0.0.0:5001/subscription/{username}')
-
-        return render_template('register.html')
+            #metrics.counter('successful_registrations_total', 'Numero totale di registrazioni riuscite').inc()
+            return jsonify({"success": True, "message": "Registrazione riuscita", "username": username})
     except Exception as e:
-    # Registra l'errore e restituisci un messaggio di errore generico
         logging.error(f"Errore durante la registrazione: {e}")
-        return 'Si è verificato un errore durante la registrazione. Riprova più tardi.'
+        return jsonify({"success": False, "message": "Si è verificato un errore durante la registrazione. Riprova più tardi."})
 
 
 if __name__ == '__main__':

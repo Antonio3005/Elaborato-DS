@@ -207,11 +207,6 @@ def best_flights():
 
     try:
         consume_messages(consumer)
-        #schedule.every().day.at("10:28").do(consume_message(consumer))
-
-        #while True:
-        #    schedule.run_pending()
-        #    time.sleep(1)
         return "Successo"
     except Exception as e:
         print(f"Errore durante la lettura dei messaggi: {e}")
