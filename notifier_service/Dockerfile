@@ -1,12 +1,14 @@
 FROM python:3.11.5
-
 # Imposta il lavoro di lavoro nel container
 WORKDIR /notifier_service
 
+COPY . .
+àCOPY notifier.py ./
+#COPY requirements.txt ./
 RUN pip3 install --upgrade pip
-COPY notifier.py ./
-COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install Flask --upgrade
 
 # Comando per avviare il servizio
-CMD ["python", "notifier.py"]
+#CMD ["python", "notifier.py"]
+CMD ["flask","--app", "notifier", "run", "--host=0.0.0.0"]

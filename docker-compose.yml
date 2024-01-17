@@ -8,7 +8,22 @@ volumes:
 networks:
   mainetwork:
 
+
 services:
+  gateway:
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    container_name: gateway
+    ports:
+      - "8081:8081"
+    depends_on:
+      - auth_service
+      - subscription_service
+    networks:
+      - mainetwork
+    restart: always
+
   mysql_users:
     image: mysql:latest
     container_name: mysql_users

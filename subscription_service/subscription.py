@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 #import os
+from flask_cors import CORS
 from datetime import datetime
 
 app = Flask(__name__)
 app.template_folder = 'templates'
+CORS(app)
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/subscription"
@@ -73,8 +75,8 @@ def validate_preferences(city_from, city_to, date_from, date_to, return_from, re
 
 
 
-@app.route('/subscription/<username>', methods=['GET','POST'])
-def subscription(username):
+@app.route('/api/subscription', methods=['POST'])
+def subscription():
     if request.method == 'POST':
         try:
             city_from = request.form['city_from']
@@ -92,7 +94,7 @@ def subscription(username):
                 return f"Errore durante la registrazione: {ve}"
 
             # Salva i valori nel database
-            user_preferences = UserPreferences(user_id=username, city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
+            user_preferences = UserPreferences(user_id="username", city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
                                                return_from=return_from,
                                                return_to=return_to,
                                                price_from=price_from,
@@ -100,12 +102,13 @@ def subscription(username):
             db.session.add(user_preferences)
             db.session.commit()
 
-            return redirect(url_for('subscription', username=username))
+            return jsonify({"success": True, "message": "Subscription riuscita"})
         except ValueError as ve:
-            return f"Errore durante la registrazione: {ve}"
+            return jsonify({"success": False, "message": "Si è verificato un errore durante il login. Riprova più tardi."})
 
-    return render_template('subscription.html', username=username)  # , preferences=preferences)
+
+    #return render_template('subscription.html', username=username)  # , preferences=preferences)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run()

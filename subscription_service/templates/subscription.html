@@ -9,7 +9,7 @@
 <h1>Flights Preferences</h1>
 
 <h2>Inserisci le tue preferenze</h2>
-<form method="post" action="{{ url_for('subscription', username=username) }}">
+<form id="preferencesForm">
     <label for="city_from">Città di partenza:</label>
     <input type="text" name="city_from" required><br>
 
@@ -34,10 +34,40 @@
     <label for="price_to">Prezzo massimo:</label>
     <input type="number" name="price_to" step="0.1" required><br>
 
-    <button type="submit">Salva Preferenze</button>
+    <button type="button" onclick="savePreferences()">Salva Preferenze</button>
 </form>
-<form method="post" action="{{ url_for('logout') }}">
+
+<form>
     <button type="submit">Logout</button>
 </form>
+
+<script>
+    function savePreferences() {
+        var form = document.getElementById("preferencesForm");
+        var formData = new FormData(form);
+
+        fetch('http://localhost:8081/subscription/api/subscription', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Gestisci la risposta qui
+                console.log(data);
+
+                if (data.success) {
+                    // Esegui azioni di successo
+                    alert(data.message);
+                } else {
+                    // Esegui azioni in caso di errore
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Errore durante la richiesta:', error);
+            });
+    }
+</script>
+
 </body>
 </html>

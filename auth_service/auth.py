@@ -28,7 +28,6 @@ with app.app_context():
 def is_valid_password(password):
     return len(password) >= 8
 
-# ... (import ed altro codice)
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
@@ -82,4 +81,4 @@ def api_register():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run()

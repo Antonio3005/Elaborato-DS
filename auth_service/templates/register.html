@@ -3,27 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>Example HTML</title>
 </head>
 <body>
-<h2>Register</h2>
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul>
-            {% for message in messages %}
-                <li style="color: {% if 'danger' in message %}red{% else %}green{% endif %};">{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endwith %}
-<form method="post" action="{{ url_for('register') }}">
+
+<form id="registerForm">
     <label for="username">Email:</label>
     <input type="text" id="username" name="username" required>
-    <br>
+
     <label for="password">Password:</label>
     <input type="password" id="password" name="password" required>
-    <br>
-    <button type="submit">Login</button>
+
+    <button type="button" onclick="register()">Register</button>
 </form>
+
+<script>
+    function register() {
+        var username = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+
+        var formData = new FormData();
+        formData.append("username", username);
+        formData.append("password", password);
+
+        fetch('http://localhost:8081/auth/api/login', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Gestisci la risposta qui
+                console.log(data);
+
+                if (data.success) {
+                    // Esegui azioni di successo
+                    alert(data.message);
+                } else {
+                    // Esegui azioni in caso di errore
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Errore durante la richiesta:', error);
+            });
+    }
+</script>
+
 </body>
 </html>
