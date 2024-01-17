@@ -46,6 +46,14 @@
         var form = document.getElementById("preferencesForm");
         var formData = new FormData(form);
 
+        var urlParams = new URLSearchParams(window.location.search);
+
+        // Recupera il valore della variabile 'id'
+        var id = urlParams.get('token');
+
+        // Fai qualcosa con il valore ottenuto
+        console.log("ID ricevuto:", id);
+
         fetch('http://localhost:8081/subscription/api/subscription', {
             method: 'POST',
             body: formData

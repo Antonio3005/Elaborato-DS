@@ -5,7 +5,7 @@ from flask_cors import CORS
 from datetime import datetime
 
 app = Flask(__name__)
-app.template_folder = 'templates'
+#app.template_folder = 'templates'
 CORS(app)
 
 # Configurazione del database MySQL con SQLAlchemy
@@ -29,10 +29,11 @@ with app.app_context():
     db.create_all()
 
 
-@app.route('/logout', methods=['POST'])
-def logout():
+#@app.route('/logout', methods=['POST'])
+#def logout():
     # Redirect to the login page or any other desired page
-    return redirect('http://0.0.0.0:5000/')
+    #return redirect('http://0.0.0.0:5000/')
+
 def is_valid_date(date_str):
     try:
         datetime.strptime(date_str, "%d/%m/%Y")
@@ -111,4 +112,5 @@ def subscription():
 
 
 if __name__ == '__main__':
+    #app.run(debug=True, host='0.0.0.0', port=5001)
     app.run()
