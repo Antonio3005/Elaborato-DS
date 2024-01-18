@@ -37,7 +37,9 @@
 
                 if (data.success) {
                     // Esegui azioni di successo
-                    alert(data.message);
+                    //alert(data.message);
+                    var token = data.token;
+                    window.location.href = "subscription.html?token=" + token;
                 } else {
                     // Esegui azioni in caso di errore
                     alert(data.message);

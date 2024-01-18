@@ -3,12 +3,16 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import requests
+import os
+import jwt
+import time
 import logging
 from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__, template_folder='templates')
 metrics = PrometheusMetrics(app)
 CORS(app)
+SECRET_KEY=os.environ['SECRET_KEY']
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_users/users"
@@ -44,7 +48,8 @@ def api_login():
 
             if user:
                 #metrics.counter('successful_logins_total', 'Numero totale di login riusciti').inc()
-                return jsonify({"success": True, "message": "Login riuscito", "username": username})
+                token=createToken(username)
+                return jsonify({"success": True, "message": "Login riuscito", "token": token})
             else:
                 #metrics.counter('failed_logins_total', 'Numero totale di login falliti').inc()
                 return jsonify({"success": False, "message": "Credenziali non valide. Riprova."})
@@ -74,10 +79,16 @@ def api_register():
             db.session.commit()
 
             #metrics.counter('successful_registrations_total', 'Numero totale di registrazioni riuscite').inc()
-            return jsonify({"success": True, "message": "Registrazione riuscita", "username": username})
+            token=createToken(username)
+            return jsonify({"success": True, "message": "Registrazione riuscita", "token": token})
     except Exception as e:
         logging.error(f"Errore durante la registrazione: {e}")
         return jsonify({"success": False, "message": "Si è verificato un errore durante la registrazione. Riprova più tardi."})
+
+def createToken(username):
+    t_data = {"username": f"{username}", "expirationTime": time.time() + 3600*2}
+    token = jwt.encode(payload=t_data, key=SECRET_KEY, algorithm="HS256")
+    return token
 
 
 if __name__ == '__main__':

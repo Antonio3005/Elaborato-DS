@@ -1,12 +1,24 @@
+import logging
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
-#import os
+import os
 from flask_cors import CORS
 from datetime import datetime
+import jwt
+import json
+from confluent_kafka import Producer
 
 app = Flask(__name__)
 #app.template_folder = 'templates'
 CORS(app)
+SECRET_KEY=os.environ['SECRET_KEY']
+
+kafka_bootstrap_servers = 'kafka:9092'
+kafka_topic = 'users'
+conf = {
+    'bootstrap.servers': kafka_bootstrap_servers,
+}
+producer = Producer(**conf)
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/subscription"
@@ -74,11 +86,37 @@ def validate_preferences(city_from, city_to, date_from, date_to, return_from, re
         raise ValueError("Il prezzo minimo non può essere maggiore del prezzo massimo.")
 
 
+def send_to_kafka(user_preferences):
+    try:
+        # Converti l'oggetto user_preferences in un dizionario
+        preferences_dict = {
+            "user_id": user_preferences.user_id,
+            "city_from": user_preferences.city_from,
+            "city_to": user_preferences.city_to,
+            "date_from": user_preferences.date_from,
+            "date_to": user_preferences.date_to,
+            "return_from": user_preferences.return_from,
+            "return_to": user_preferences.return_to,
+            "price_from": user_preferences.price_from,
+            "price_to": user_preferences.price_to
+        }
+        serialized_data = json.dumps(preferences_dict).encode('utf-8')
+
+    # Invia il messaggio al topic Kafka
+        producer.produce(kafka_topic, value=serialized_data)
+        producer.flush()
+
+        logging.error(f"Messaggio inviato a Kafka: {serialized_data}")
+    except Exception as e:
+        logging.error(f"Errore durante l'invio del messaggio a Kafka: {e}")
 
 
-@app.route('/api/subscription', methods=['POST'])
-def subscription():
+
+@app.route('/api/subscription/<token>', methods=['POST'])
+def subscription(token):
     if request.method == 'POST':
+        decoded_token = jwt.decode(token, key=SECRET_KEY, algorithms=['HS256'])
+        logging.error(f"{decoded_token['username']}")
         try:
             city_from = request.form['city_from']
             city_to = request.form['city_to']
@@ -95,13 +133,16 @@ def subscription():
                 return f"Errore durante la registrazione: {ve}"
 
             # Salva i valori nel database
-            user_preferences = UserPreferences(user_id="username", city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
+            user_preferences = UserPreferences(user_id=decoded_token["username"], city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
                                                return_from=return_from,
                                                return_to=return_to,
                                                price_from=price_from,
                                                price_to=price_to)
             db.session.add(user_preferences)
             db.session.commit()
+
+            # Invia i valori a Kafka
+            send_to_kafka(user_preferences)
 
             return jsonify({"success": True, "message": "Subscription riuscita"})
         except ValueError as ve:

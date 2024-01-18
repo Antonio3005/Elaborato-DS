@@ -3,11 +3,11 @@ version: '3'
 volumes:
   mysql_data_users:
   mysql_data_subscription:
+  mysql_data_api:
   mysql_data_bestflights:
 
 networks:
   mainetwork:
-
 
 services:
   gateway:
@@ -50,6 +50,7 @@ services:
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
+      SECRET_KEY: 'chiavesegreta'
     ports:
       - "5000:5000"
     networks:
@@ -84,6 +85,8 @@ services:
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
+      SECRET_KEY: 'chiavesegreta'
+      KAFKA_BOOTSTRAP_SERVERS: 'kafka:9092'  # Indirizzo del broker Kafka
     ports:
       - "5001:5001"
     networks:
@@ -91,6 +94,7 @@ services:
     restart: always
     depends_on:
       - mysql_subscription
+      - kafka
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -122,6 +126,22 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
+  mysql_api:
+    image: mysql:latest
+    container_name: mysql_api
+    environment:
+      MYSQL_ROOT_PASSWORD: '12345'
+      MYSQL_DATABASE: 'api'  # Nome del database per il servizio auth
+      MYSQL_USER: 'an'
+      MYSQL_PASSWORD: '12345'
+    ports:
+      - "9093:3306"
+    networks:
+      - mainetwork
+    volumes:
+      - mysql_data_api:/var/lib/mysql
+    restart: always
+
   api_service:
     build:
       context: api_service
@@ -140,6 +160,7 @@ services:
       - mainetwork
     restart: always
     depends_on:
+      - mysql_api
       - mysql_subscription
       - kafka
 

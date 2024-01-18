@@ -43,18 +43,15 @@
 
 <script>
     function savePreferences() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var token = urlParams.get('token');
         var form = document.getElementById("preferencesForm");
         var formData = new FormData(form);
 
-        var urlParams = new URLSearchParams(window.location.search);
-
-        // Recupera il valore della variabile 'id'
-        var id = urlParams.get('token');
-
         // Fai qualcosa con il valore ottenuto
-        console.log("ID ricevuto:", id);
+        console.log("Token ricevuto:", token);
 
-        fetch('http://localhost:8081/subscription/api/subscription', {
+        fetch('http://localhost:8081/subscription/api/subscription/' + token, {
             method: 'POST',
             body: formData
         })

@@ -3,9 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 import requests
 import logging
 import json
-from confluent_kafka import Producer
+from confluent_kafka import Producer, Consumer, KafkaError
 import schedule
 import time
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -13,14 +14,16 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 
 kafka_bootstrap_servers = 'kafka:9092'
-kafka_topic = 'flights'
+kafka_topic1 = 'flights'
+kafka_topic2 = 'users'
 conf = {
     'bootstrap.servers': kafka_bootstrap_servers,
 }
 producer = Producer(**conf)
 
 # Configurazione del database MySQL con SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/subscription"
+#app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/subscription"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_api/api"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -154,15 +157,55 @@ def flights():
                     d['user_id'] = sub.user_id
                     logging.debug(f"Valore di data: {d}")
                     serialized_data = json.dumps(d).encode('utf-8')
-                    producer.produce(kafka_topic, value=serialized_data)
+                    producer.produce(kafka_topic1, value=serialized_data)
 
                 producer.flush()
     except Exception as e:
         print(f"Errore durante l'esecuzione della funzione flights: {e}")
 
     return 'Eseguito con successo'
-@app.route('/', methods=['GET'])
+
+def consume_messages(c):
+    try:
+        while True:
+            # Consuma i messaggi
+            msg = c.poll(0.1)
+            if msg is None:
+                continue
+            if msg.error():
+                if msg.error().code() == KafkaError._PARTITION_EOF:
+                    continue
+                else:
+                    print(msg.error())
+                    break
+
+            # Elabora il messaggio
+            flight_data = msg.value()
+            flight_data_string = flight_data.decode('utf-8')
+            data = json.loads(flight_data_string)
+            #process_flight_data(data)
+
+    except Exception as e:
+        print(f"Errore durante la lettura dei messaggi: {e}")
+    finally:
+        # Chiudi il consumatore alla fine
+        c.close()
+
+#@app.route('/', methods=['GET'])
 def schedule_flights():
+    consumer = Consumer(**conf)
+    consumer.subscribe([kafka_topic2])
+
+    try:
+        consume_messages(consumer)
+        return "Successo"
+    except Exception as e:
+        print(f"Errore durante la lettura dei messaggi: {e}")
+    finally:
+        # Chiudi il consumatore alla fine
+        consumer.close()
+
+    #return "Successo"
     try:
         flights()
         #schedule.every().day.at("10:28").do(flights)
@@ -173,6 +216,9 @@ def schedule_flights():
         return 'Eseguito con successo'
     except Exception as e:
         return f"Errore durante l'esecuzione della funzione schedule_flights: {e}"
+
+
+
 
 
 if __name__ == '__main__':
