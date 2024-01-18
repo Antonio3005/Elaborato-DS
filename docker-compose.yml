@@ -161,7 +161,6 @@ services:
     restart: always
     depends_on:
       - mysql_api
-      - mysql_subscription
       - kafka
 
   mysql_bestflights:

@@ -42,7 +42,19 @@ db = SQLAlchemy(app)
 #    departure_date = db.Column(db.String(255), nullable=False)
 #    return_date = db.Column(db.String(255), nullable=False)
 #    price = db.Column(db.String(255), nullable=False)
-class UserPreferences(db.Model):
+#class UserPreferences(db.Model):
+#    id = db.Column(db.Integer, primary_key=True)
+#    user_id = db.Column(db.String(255), nullable=False)
+#    city_from = db.Column(db.String(255), nullable=False)
+#    city_to = db.Column(db.String(255), nullable=False)
+#    date_from = db.Column(db.String(255), nullable=False)
+#    date_to = db.Column(db.String(255), nullable=False)
+#    return_from = db.Column(db.String(255), nullable=False)
+#    return_to = db.Column(db.String(255), nullable=False)
+#    price_from = db.Column(db.String(255), nullable=False)
+#    price_to = db.Column(db.String(255), nullable=False)
+
+class SubPreferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
     city_from = db.Column(db.String(255), nullable=False)
@@ -140,7 +152,9 @@ def get_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, 
 
 def flights():
     try:
-        subscription = UserPreferences.query.all()
+        #subscription = UserPreferences.query.all()
+        subscription = SubPreferences.query.all()
+
         for sub in subscription:
             iata_from = get_iata(sub.city_from)
             if iata_from is None:
@@ -171,18 +185,22 @@ def flights():
     return 'Eseguito con successo'
 
 def save_to_database(sub_data):
-
+    logging.error(f"sono qui{sub_data['city_from']}")
     try:
-        user_preferences = UserPreferences(user_id=sub_data["user_id"], city_from=sub_data["city_from"],city_to=sub_data["city_to"], date_from=sub_data["date_from"],
+        sub_preferences = SubPreferences(user_id=sub_data["user_id"],
+                                           city_from=sub_data["city_from"],
+                                           city_to=sub_data["city_to"],
+                                           date_from=sub_data["date_from"],
                                            date_to=sub_data["date_to"],
                                            return_from=sub_data["return_from"],
                                            return_to=sub_data["return_to"],
                                            price_from=sub_data["price_from"],
                                            price_to=sub_data["price_to"])
-        db.session.add(user_preferences)
-        db.session.commit()
+        logging.debug(f"ciao 2 {sub_preferences.price_from}")
 
-        #logging.debug(f"ciao 2 {new_flight}")
+        db.session.add(sub_preferences)
+        db.session.commit()
+        logging.debug(f'Database aggiornato: {sub_data}')
         #db.session.add(new_flight)
         #db.session.commit()
         return 'Database aggiornato'
