@@ -16,10 +16,15 @@ app = Flask(__name__)
 kafka_bootstrap_servers = 'kafka:9092'
 kafka_topic1 = 'flights'
 kafka_topic2 = 'users'
+group_id = 'group'
 conf = {
     'bootstrap.servers': kafka_bootstrap_servers,
+    'group.id': group_id,
+    'auto.offset.reset': 'earliest',  # Puoi regolare questa impostazione in base alle tue esigenze
 }
 producer = Producer(**conf)
+consumer = Consumer(**conf)
+
 
 # Configurazione del database MySQL con SQLAlchemy
 #app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/subscription"
@@ -165,6 +170,26 @@ def flights():
 
     return 'Eseguito con successo'
 
+def save_to_database(sub_data):
+
+    try:
+        user_preferences = UserPreferences(user_id=sub_data["user_id"], city_from=sub_data["city_from"],city_to=sub_data["city_to"], date_from=sub_data["date_from"],
+                                           date_to=sub_data["date_to"],
+                                           return_from=sub_data["return_from"],
+                                           return_to=sub_data["return_to"],
+                                           price_from=sub_data["price_from"],
+                                           price_to=sub_data["price_to"])
+        db.session.add(user_preferences)
+        db.session.commit()
+
+        #logging.debug(f"ciao 2 {new_flight}")
+        #db.session.add(new_flight)
+        #db.session.commit()
+        return 'Database aggiornato'
+    except Exception as e:
+        return f'Errore durante il salvataggio nel database: {e}'
+
+
 def consume_messages(c):
     try:
         while True:
@@ -180,9 +205,12 @@ def consume_messages(c):
                     break
 
             # Elabora il messaggio
-            flight_data = msg.value()
-            flight_data_string = flight_data.decode('utf-8')
-            data = json.loads(flight_data_string)
+            sub_data = msg.value()
+            sub_data_string = sub_data.decode('utf-8')
+            data = json.loads(sub_data_string)
+            logging.error(f"{data}")
+            save_to_database(data)
+
             #process_flight_data(data)
 
     except Exception as e:
@@ -191,10 +219,9 @@ def consume_messages(c):
         # Chiudi il consumatore alla fine
         c.close()
 
-#@app.route('/', methods=['GET'])
+
 def schedule_flights():
-    consumer = Consumer(**conf)
-    consumer.subscribe([kafka_topic2])
+
 
     try:
         consume_messages(consumer)
@@ -218,12 +245,25 @@ def schedule_flights():
         return f"Errore durante l'esecuzione della funzione schedule_flights: {e}"
 
 
+schedule.every().day.at("18:30").do(flights)
+
+def schedule_jobs():
+    while True:
+        schedule.run_pending()
+
+        # Esegui altre funzioni che non sono pianificate con schedule
+        consumer.subscribe([kafka_topic2])
+        consume_messages(consumer)
+
+        time.sleep(1)
+    return "succes"
 
 
 
 if __name__ == '__main__':
     #app.run(debug=True, host='0.0.0.0', port=5002)
-    app.run()
+    #app.run()
     #while True:
     #    schedule.run_pending()
     #    time.sleep(1)
+    schedule_jobs()
