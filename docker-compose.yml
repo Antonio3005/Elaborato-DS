@@ -148,7 +148,7 @@ services:
       dockerfile: Dockerfile
     container_name: api_service
     environment:
-      MYSQL_DATABASE: 'subscription'  # Nuovo database per il servizio meteo
+      MYSQL_DATABASE: 'api'  # Nuovo database per il servizio
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
@@ -172,7 +172,7 @@ services:
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
     ports:
-      - "9092:3306"
+      - "9094:3306"
     networks:
       - mainetwork
     volumes:

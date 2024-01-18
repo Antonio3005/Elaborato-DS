@@ -138,6 +138,8 @@ def subscription(token):
                                                return_to=return_to,
                                                price_from=price_from,
                                                price_to=price_to)
+
+            logging.error(f"auth{user_preferences}")
             db.session.add(user_preferences)
             db.session.commit()
 

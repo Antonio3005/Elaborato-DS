@@ -32,16 +32,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_api/api"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-#class BestFlights(db.Model):
-#    id = db.Column(db.Integer, primary_key=True)
-#    user_id = db.Column(db.String(255), nullable=False)
-#    city_from = db.Column(db.String(255), nullable=False)
-#    airport_from = db.Column(db.String(255), nullable=False)
-#    airport_to = db.Column(db.String(255), nullable=False)
-#    city_to = db.Column(db.String(255), nullable=False)
-#    departure_date = db.Column(db.String(255), nullable=False)
-#    return_date = db.Column(db.String(255), nullable=False)
-#    price = db.Column(db.String(255), nullable=False)
+
 #class UserPreferences(db.Model):
 #    id = db.Column(db.Integer, primary_key=True)
 #    user_id = db.Column(db.String(255), nullable=False)
@@ -69,6 +60,7 @@ class SubPreferences(db.Model):
 
 with app.app_context():
     db.create_all()
+    logging.debug("cartelle create con successo")
 
 def get_iata(city):
 
@@ -187,23 +179,28 @@ def flights():
 def save_to_database(sub_data):
     logging.error(f"sono qui{sub_data['city_from']}")
     try:
-        sub_preferences = SubPreferences(user_id=sub_data["user_id"],
-                                           city_from=sub_data["city_from"],
-                                           city_to=sub_data["city_to"],
-                                           date_from=sub_data["date_from"],
-                                           date_to=sub_data["date_to"],
-                                           return_from=sub_data["return_from"],
-                                           return_to=sub_data["return_to"],
-                                           price_from=sub_data["price_from"],
-                                           price_to=sub_data["price_to"])
-        logging.debug(f"ciao 2 {sub_preferences.price_from}")
+        with app.app_context():
+            sub_preferences = SubPreferences(user_id=sub_data["user_id"],
+                                               city_from=sub_data["city_from"],
+                                               city_to=sub_data["city_to"],
+                                               date_from=sub_data["date_from"],
+                                               date_to=sub_data["date_to"],
+                                               return_from=sub_data["return_from"],
+                                               return_to=sub_data["return_to"],
+                                               price_from=sub_data["price_from"],
+                                               price_to=sub_data["price_to"])
+            logging.debug(f"ciao 2 {sub_preferences.price_from}")
 
-        db.session.add(sub_preferences)
-        db.session.commit()
-        logging.debug(f'Database aggiornato: {sub_data}')
-        #db.session.add(new_flight)
-        #db.session.commit()
-        return 'Database aggiornato'
+            try:
+                db.session.add(sub_preferences)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                logging.error(f'Errore durante il commit nel database: {e}')
+
+            #db.session.add(new_flight)
+            #db.session.commit()
+            return 'Database aggiornato'
     except Exception as e:
         return f'Errore durante il salvataggio nel database: {e}'
 
