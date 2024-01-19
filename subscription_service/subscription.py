@@ -7,6 +7,7 @@ from datetime import datetime
 import jwt
 import json
 from confluent_kafka import Producer
+import time
 
 app = Flask(__name__)
 #app.template_folder = 'templates'
@@ -115,41 +116,49 @@ def send_to_kafka(user_preferences):
 @app.route('/api/subscription/<token>', methods=['POST'])
 def subscription(token):
     if request.method == 'POST':
-        decoded_token = jwt.decode(token, key=SECRET_KEY, algorithms=['HS256'])
-        logging.error(f"{decoded_token['username']}")
         try:
-            city_from = request.form['city_from']
-            city_to = request.form['city_to']
-            date_from = request.form['date_from']
-            date_to = request.form['date_to']
-            return_from = request.form['return_from']
-            return_to = request.form['return_to']
-            price_from = request.form['price_from']
-            price_to = request.form['price_to']
+            decoded_token = jwt.decode(token, key=SECRET_KEY, algorithms=['HS256'])
+            logging.error(f"{decoded_token['username']}")
+            if decoded_token["expirationTime"] > time.time():
+                try:
+                    city_from = request.form['city_from']
+                    city_to = request.form['city_to']
+                    date_from = request.form['date_from']
+                    date_to = request.form['date_to']
+                    return_from = request.form['return_from']
+                    return_to = request.form['return_to']
+                    price_from = request.form['price_from']
+                    price_to = request.form['price_to']
 
-            try:
-                validate_preferences(city_from, city_to, date_from, date_to, return_from, return_to, price_from, price_to)
-            except ValueError as ve:
-                return f"Errore durante la registrazione: {ve}"
+                    try:
+                        validate_preferences(city_from, city_to, date_from, date_to, return_from, return_to, price_from, price_to)
+                    except ValueError as ve:
+                        return f"Errore durante la registrazione: {ve}"
 
-            # Salva i valori nel database
-            user_preferences = UserPreferences(user_id=decoded_token["username"], city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
-                                               return_from=return_from,
-                                               return_to=return_to,
-                                               price_from=price_from,
-                                               price_to=price_to)
+                    # Salva i valori nel database
+                    user_preferences = UserPreferences(user_id=decoded_token["username"], city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
+                                                       return_from=return_from,
+                                                       return_to=return_to,
+                                                       price_from=price_from,
+                                                       price_to=price_to)
 
-            logging.error(f"auth{user_preferences}")
-            db.session.add(user_preferences)
-            db.session.commit()
+                    logging.error(f"auth{user_preferences}")
+                    db.session.add(user_preferences)
+                    db.session.commit()
 
-            # Invia i valori a Kafka
-            send_to_kafka(user_preferences)
+                    # Invia i valori a Kafka
+                    send_to_kafka(user_preferences)
 
-            return jsonify({"success": True, "message": "Subscription riuscita"})
-        except ValueError as ve:
-            return jsonify({"success": False, "message": "Si è verificato un errore durante il login. Riprova più tardi."})
+                    return jsonify({"success": True, "message": "Subscription riuscita"})
+                except ValueError as ve:
+                    return jsonify({"success": False, "message": "Si è verificato un errore durante il login. Riprova più tardi."})
+            else:
+                return jsonify({"success": False, "message": "Token scaduto"})
 
+        except:
+            return jsonify({"success": False, "message": "Token non presente, rieffettua il login"})
+
+            #return make_response("", 401) #Unauthorized
 
     #return render_template('subscription.html', username=username)  # , preferences=preferences)
 
