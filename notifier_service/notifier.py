@@ -144,8 +144,12 @@ def send_notification_email(to_email, subject, body):
         msg['To'] = to_email
         msg['Subject'] = subject
 
+        logging.debug(f"IL BODY È : {body}")
+
         # Aggiungere il corpo del messaggio
-        msg.attach(MIMEText(body, 'plain'))
+        #body_unicode = body.encode('utf-8').decode('utf-8')
+        body_with_crlf = body.replace('\n', '\r\n')
+        msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
         # Inizializzare la connessione SMTP
         with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
@@ -190,16 +194,16 @@ def process_flight_data(flight_data):
                     save_to_database(flight_data)
                     body = (f"Ci sono nuove offerte di volo disponibili per le tue richieste: \n"
                             "Andata:\n"
-                            f"Città di partenza {flight_data['route'][0]['cityFrom']}\n"
+                            f"Citta di partenza {flight_data['route'][0]['cityFrom']}\n"
                             f"Aeroporto di partenza {flight_data['route'][0]['flyFrom']}\n"
                             f"Aeroporto di arrivo {flight_data['route'][0]['flyTo']}\n"
-                            f"Città di arrivo {flight_data['route'][0]['cityTo']}\n"
+                            f"Citta di arrivo {flight_data['route'][0]['cityTo']}\n"
                             f"Data di partenza {flight_data['route'][0]['local_departure']}\n"
                             "Ritorno:\n"
-                            f"Città di partenza {flight_data['route'][1]['cityFrom']}\n"
+                            f"Citta di partenza {flight_data['route'][1]['cityFrom']}\n"
                             f"Aeroporto di partenza {flight_data['route'][1]['flyFrom']}\n"
                             f"Aeroporto di arrivo {flight_data['route'][1]['flyTo']}\n"
-                            f"Città di arrivo {flight_data['route'][1]['cityTo']}\n"
+                            f"Citta di arrivo {flight_data['route'][1]['cityTo']}\n"
                             f"Data di ritorno {flight_data['route'][1]['local_departure']}\n"
                             f"Prezzo {flight_data['price']}\n") #da modificare
                 else:
@@ -212,16 +216,16 @@ def process_flight_data(flight_data):
             save_to_database(flight_data)
             body = (f"Ci sono nuove offerte di volo disponibili per le tue richieste: \n"
                     "Andata:\n"
-                    f"Città di partenza {flight_data['route'][0]['cityFrom']}\n"
+                    f"Citta di partenza {flight_data['route'][0]['cityFrom']}\n"
                     f"Aeroporto di partenza {flight_data['route'][0]['flyFrom']}\n"
                     f"Aeroporto di arrivo {flight_data['route'][0]['flyTo']}\n"
-                    f"Città di arrivo {flight_data['route'][0]['cityTo']}\n"
+                    f"Citta di arrivo {flight_data['route'][0]['cityTo']}\n"
                     f"Data di partenza {flight_data['route'][0]['local_departure']}\n"
                     "Ritorno:\n"
-                    f"Città di partenza {flight_data['route'][1]['cityFrom']}\n"
+                    f"Citta di partenza {flight_data['route'][1]['cityFrom']}\n"
                     f"Aeroporto di partenza {flight_data['route'][1]['flyFrom']}\n"
                     f"Aeroporto di arrivo {flight_data['route'][1]['flyTo']}\n"
-                    f"Città di arrivo {flight_data['route'][1]['cityTo']}\n"
+                    f"Citta di arrivo {flight_data['route'][1]['cityTo']}\n"
                     f"Data di ritorno {flight_data['route'][1]['local_departure']}\n"
                     f"Prezzo {flight_data['price']}\n") #da modificare
 

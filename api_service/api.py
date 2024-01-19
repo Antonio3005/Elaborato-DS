@@ -266,9 +266,9 @@ def schedule_jobs():
         # Esegui la funzione flights ogni giorno alle 18:58
         current_time = time.localtime()
         logging.debug(current_time)
-        #if current_time.tm_hour == 20 and current_time.tm_min == 8:
-        #    logging.debug("DEGUGGO sono qui")
-        flights()
+        if current_time.tm_hour == 8 and current_time.tm_min == 0:
+            logging.debug("DEGUGGO sono qui")
+            flights()
 
         # Esegui altre funzioni non pianificate
         consumer.subscribe([kafka_topic2])
