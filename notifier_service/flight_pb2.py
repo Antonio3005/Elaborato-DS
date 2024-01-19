@@ -14,17 +14,17 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dnotifier_service/flight.proto\x12\nflightdata\"\x8e\x01\n\x11\x46lightDataRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x10\n\x08\x63ityFrom\x18\x02 \x01(\t\x12\x0f\n\x07\x66lyFrom\x18\x03 \x01(\t\x12\r\n\x05\x66lyTo\x18\x04 \x01(\t\x12\x0e\n\x06\x63ityTo\x18\x05 \x01(\t\x12\x17\n\x0flocal_departure\x18\x06 \x01(\t\x12\r\n\x05price\x18\x07 \x01(\t\"*\n\x17NotifyFlightDataSuccess\x12\x0f\n\x07message\x18\x01 \x01(\t2i\n\x11\x46lightDataService\x12T\n\x0eSendFlightData\x12\x1d.flightdata.FlightDataRequest\x1a#.flightdata.NotifyFlightDataSuccessb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dnotifier_service/flight.proto\x12\nflightdata\"&\n\x11\x46lightDataRequest\x12\x11\n\tjson_data\x18\x01 \x01(\t\"*\n\x17NotifyFlightDataSuccess\x12\x0f\n\x07message\x18\x01 \x01(\t2i\n\x11\x46lightDataService\x12T\n\x0eSendFlightData\x12\x1d.flightdata.FlightDataRequest\x1a#.flightdata.NotifyFlightDataSuccessb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'notifier_service.flight_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
-  _globals['_FLIGHTDATAREQUEST']._serialized_start=46
-  _globals['_FLIGHTDATAREQUEST']._serialized_end=188
-  _globals['_NOTIFYFLIGHTDATASUCCESS']._serialized_start=190
-  _globals['_NOTIFYFLIGHTDATASUCCESS']._serialized_end=232
-  _globals['_FLIGHTDATASERVICE']._serialized_start=234
-  _globals['_FLIGHTDATASERVICE']._serialized_end=339
+  _globals['_FLIGHTDATAREQUEST']._serialized_start=45
+  _globals['_FLIGHTDATAREQUEST']._serialized_end=83
+  _globals['_NOTIFYFLIGHTDATASUCCESS']._serialized_start=85
+  _globals['_NOTIFYFLIGHTDATASUCCESS']._serialized_end=127
+  _globals['_FLIGHTDATASERVICE']._serialized_start=129
+  _globals['_FLIGHTDATASERVICE']._serialized_end=234
 # @@protoc_insertion_point(module_scope)

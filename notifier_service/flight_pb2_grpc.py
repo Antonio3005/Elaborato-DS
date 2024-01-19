@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from notifier_service import flight_pb2 as notifier__service_dot_flight__pb2
+import flight_pb2 as notifier__service_dot_flight__pb2
 
 
 class FlightDataServiceStub(object):

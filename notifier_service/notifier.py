@@ -7,6 +7,11 @@ import logging
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
+import grpc
+import flight_pb2
+import flight_pb2_grpc
+from concurrent import futures
+from google.protobuf.json_format import Parse
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -65,6 +70,19 @@ class BestFlights(db.Model):
 
 with app.app_context():
     db.create_all()
+
+class NotifierService(flight_pb2_grpc.FlightDataServiceServicer):
+    def SendFlightData(self, request, context):
+        # Parsa il campo json_data come oggetto JSON
+        logging.info("debuggo")
+        json_data = json.loads(request.json_data)
+        logging.info("Dati ricevuti da gRPC")
+        logging.info(f"{json_data}")
+        # Ora json_data è un dizionario Python
+        # Fai qualcosa con i dati JSON
+
+        # Restituisci una risposta se necessario
+        return flight_pb2.NotifyFlightDataSuccess(message="Dati ricevuti con successo")
 
 def save_to_database(flight_data):
 
@@ -200,7 +218,6 @@ def consume_messages(c):
         # Chiudi il consumatore alla fine
         c.close()
 
-@app.route('/', methods=['GET'])
 def best_flights():
     consumer = Consumer(**conf)
     consumer.subscribe([kafka_topic])
@@ -216,6 +233,15 @@ def best_flights():
 
     return "Successo"
 
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    flight_pb2_grpc.add_FlightDataServiceServicer_to_server(NotifierService(), server)
+    server.add_insecure_port('[::]:5003')
+    logging.info("Avvio del server gRPC su porta 5003...")
+    server.start()
+    logging.info("Il server gRPC è in esecuzione.")
+    server.wait_for_termination()
+
 if __name__ == '__main__':
     #app.run(debug=True, host='0.0.0.0', port=5003)
-    app.run()
+    serve()

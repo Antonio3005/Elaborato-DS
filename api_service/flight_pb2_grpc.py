@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from notifier_service import flight_pb2 as notifier__service_dot_flight__pb2
+from api_service import flight_pb2 as api__service_dot_flight__pb2
 
 
 class FlightDataServiceStub(object):
@@ -16,8 +16,8 @@ class FlightDataServiceStub(object):
         """
         self.SendFlightData = channel.unary_unary(
                 '/flightdata.FlightDataService/SendFlightData',
-                request_serializer=notifier__service_dot_flight__pb2.FlightDataRequest.SerializeToString,
-                response_deserializer=notifier__service_dot_flight__pb2.NotifyFlightDataSuccess.FromString,
+                request_serializer=api__service_dot_flight__pb2.FlightDataRequest.SerializeToString,
+                response_deserializer=api__service_dot_flight__pb2.NotifyFlightDataSuccess.FromString,
                 )
 
 
@@ -35,8 +35,8 @@ def add_FlightDataServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'SendFlightData': grpc.unary_unary_rpc_method_handler(
                     servicer.SendFlightData,
-                    request_deserializer=notifier__service_dot_flight__pb2.FlightDataRequest.FromString,
-                    response_serializer=notifier__service_dot_flight__pb2.NotifyFlightDataSuccess.SerializeToString,
+                    request_deserializer=api__service_dot_flight__pb2.FlightDataRequest.FromString,
+                    response_serializer=api__service_dot_flight__pb2.NotifyFlightDataSuccess.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -60,7 +60,7 @@ class FlightDataService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/flightdata.FlightDataService/SendFlightData',
-            notifier__service_dot_flight__pb2.FlightDataRequest.SerializeToString,
-            notifier__service_dot_flight__pb2.NotifyFlightDataSuccess.FromString,
+            api__service_dot_flight__pb2.FlightDataRequest.SerializeToString,
+            api__service_dot_flight__pb2.NotifyFlightDataSuccess.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

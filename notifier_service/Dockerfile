@@ -10,5 +10,5 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip install Flask --upgrade
 
 # Comando per avviare il servizio
-#CMD ["python", "notifier.py"]
-CMD ["flask","--app", "notifier", "run", "--host=0.0.0.0"]
+CMD ["python", "notifier.py"]
+

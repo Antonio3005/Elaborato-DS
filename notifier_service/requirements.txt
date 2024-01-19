@@ -12,3 +12,5 @@ schedule==1.2.1
 requests==2.31.0
 prometheus-flask-exporter==0.23.0
 grpcio==1.60.0
+protobuf==4.25.2
+google==3.0.0

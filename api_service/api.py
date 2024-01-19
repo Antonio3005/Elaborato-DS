@@ -6,6 +6,9 @@ import json
 from confluent_kafka import Producer, Consumer, KafkaError
 import schedule
 import time
+import grpc
+import flight_pb2
+import flight_pb2_grpc
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -14,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 
 kafka_bootstrap_servers = 'kafka:9092'
-kafka_topic1 = 'flights'
+#kafka_topic1 = 'flights'
 kafka_topic2 = 'users'
 group_id = 'group'
 conf = {
@@ -22,7 +25,7 @@ conf = {
     'group.id': group_id,
     'auto.offset.reset': 'earliest',  # Puoi regolare questa impostazione in base alle tue esigenze
 }
-producer = Producer(**conf)
+#producer = Producer(**conf)
 consumer = Consumer(**conf)
 
 
@@ -61,6 +64,23 @@ class SubPreferences(db.Model):
 with app.app_context():
     db.create_all()
     logging.debug("cartelle create con successo")
+
+
+def send_flight_data(data):
+    #logging.debug(f"sono qui dentro senf_flight;{data}")
+    channel = grpc.insecure_channel('notifier_service:5003')
+    stub = flight_pb2_grpc.FlightDataServiceStub(channel)
+
+
+    # Crea un oggetto FlightDataRequest con i dati appropriati
+    request = flight_pb2.FlightDataRequest(
+        json_data=data
+    )
+    #logging.debug(f"jason_data{request}")
+
+    # Chiamata remota al servizio SendFlightData
+    response = stub.SendFlightData(request)
+    logging.debug(f"Risposta dal server: {response.message}")
 
 def get_iata(city):
 
@@ -145,7 +165,8 @@ def get_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, 
 def flights():
     try:
         #subscription = UserPreferences.query.all()
-        subscription = SubPreferences.query.all()
+        with app.app_context():
+            subscription = SubPreferences.query.all()
 
         for sub in subscription:
             iata_from = get_iata(sub.city_from)
@@ -168,16 +189,18 @@ def flights():
                     d['user_id'] = sub.user_id
                     logging.debug(f"Valore di data: {d}")
                     serialized_data = json.dumps(d).encode('utf-8')
-                    producer.produce(kafka_topic1, value=serialized_data)
+                    #chiamata funzione gRPC
+                    send_flight_data(serialized_data)
+                    #producer.produce(kafka_topic1, value=serialized_data)
 
-                producer.flush()
+                #producer.flush()
     except Exception as e:
         print(f"Errore durante l'esecuzione della funzione flights: {e}")
 
     return 'Eseguito con successo'
 
 def save_to_database(sub_data):
-    logging.error(f"sono qui{sub_data['city_from']}")
+    #logging.error(f"sono qui{sub_data['city_from']}")
     try:
         with app.app_context():
             sub_preferences = SubPreferences(user_id=sub_data["user_id"],
@@ -189,7 +212,7 @@ def save_to_database(sub_data):
                                                return_to=sub_data["return_to"],
                                                price_from=sub_data["price_from"],
                                                price_to=sub_data["price_to"])
-            logging.debug(f"ciao 2 {sub_preferences.price_from}")
+            #logging.debug(f"ciao 2 {sub_preferences.price_from}")
 
             try:
                 db.session.add(sub_preferences)
@@ -198,8 +221,6 @@ def save_to_database(sub_data):
                 db.session.rollback()
                 logging.error(f'Errore durante il commit nel database: {e}')
 
-            #db.session.add(new_flight)
-            #db.session.commit()
             return 'Database aggiornato'
     except Exception as e:
         return f'Errore durante il salvataggio nel database: {e}'
@@ -226,8 +247,6 @@ def consume_messages(c):
             logging.error(f"{data}")
             save_to_database(data)
 
-            #process_flight_data(data)
-
     except Exception as e:
         print(f"Errore durante la lettura dei messaggi: {e}")
     finally:
@@ -235,36 +254,14 @@ def consume_messages(c):
         c.close()
 
 
-def schedule_flights():
 
 
-    try:
-        consume_messages(consumer)
-        return "Successo"
-    except Exception as e:
-        print(f"Errore durante la lettura dei messaggi: {e}")
-    finally:
-        # Chiudi il consumatore alla fine
-        consumer.close()
-
-    #return "Successo"
-    try:
-        flights()
-        #schedule.every().day.at("10:28").do(flights)
-
-        #while True:
-        #    schedule.run_pending()
-        #    time.sleep(1)
-        return 'Eseguito con successo'
-    except Exception as e:
-        return f"Errore durante l'esecuzione della funzione schedule_flights: {e}"
-
-
-schedule.every().day.at("18:30").do(flights)
+#schedule.every().day.at("18:30").do(flights)
 
 def schedule_jobs():
     while True:
-        schedule.run_pending()
+        #schedule.run_pending()
+        flights()
 
         # Esegui altre funzioni che non sono pianificate con schedule
         consumer.subscribe([kafka_topic2])
