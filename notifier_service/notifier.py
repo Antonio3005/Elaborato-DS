@@ -113,23 +113,6 @@ def save_to_database(flight_data):
         except Exception as e:
             return f'Errore durante il salvataggio nel database: {e}'
 
-#def send_notification_email(to_email, subject, body):
-#    try:
-#        logging.debug("debug email funziona?")
-#        logging.debug(f"email{to_email}")
-#       msg = Message(subject = subject, recipients=[to_email])
-#        msg.body = body
-#        with current_app.app_context():
-#            mail.send(msg)
-        #logging.debug(f"{mail}")
-        #mail.send(msg)
-#        logging.debug("email inviata!!!!")
-#        return 'Email inviata con successo!'
-#    except Exception as e:
-#        return 'Errore durante l\'invio dell\'email: ' + str(e)
-
-
-
 def send_notification_email(to_email, subject, body):
     try:
         # Configurare i dettagli del server SMTP
@@ -239,46 +222,6 @@ def process_flight_data(flight_data):
     except Exception as e:
         return f'Errore durante l\'elaborazione dei dati di volo: {e}'
 
-def consume_messages(c):
-    try:
-        while True:
-            # Consuma i messaggi
-            msg = c.poll(0.1)
-            if msg is None:
-                continue
-            if msg.error():
-                if msg.error().code() == KafkaError._PARTITION_EOF:
-                    continue
-                else:
-                    print(msg.error())
-                    break
-
-            # Elabora il messaggio
-            flight_data = msg.value()
-            flight_data_string = flight_data.decode('utf-8')
-            data = json.loads(flight_data_string)
-
-
-    except Exception as e:
-        print(f"Errore durante la lettura dei messaggi: {e}")
-    finally:
-        # Chiudi il consumatore alla fine
-        c.close()
-
-def best_flights():
-    consumer = Consumer(**conf)
-    consumer.subscribe([kafka_topic])
-
-    try:
-        consume_messages(consumer)
-        return "Successo"
-    except Exception as e:
-        print(f"Errore durante la lettura dei messaggi: {e}")
-    finally:
-        # Chiudi il consumatore alla fine
-        consumer.close()
-
-    return "Successo"
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
