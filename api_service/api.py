@@ -232,7 +232,8 @@ def consume_messages(c):
             # Consuma i messaggi
             msg = c.poll(0.1)
             if msg is None:
-                continue
+                logging.debug("non ci sono messaggi da leggere")
+                break
             if msg.error():
                 if msg.error().code() == KafkaError._PARTITION_EOF:
                     continue
@@ -249,25 +250,32 @@ def consume_messages(c):
 
     except Exception as e:
         print(f"Errore durante la lettura dei messaggi: {e}")
-    finally:
+    #finally:
         # Chiudi il consumatore alla fine
-        c.close()
+    #    c.close()
 
 
 
 
-#schedule.every().day.at("18:30").do(flights)
+#schedule.every().day.at("18:58").do(flights)
 
 def schedule_jobs():
     while True:
         #schedule.run_pending()
+        #flights()
+        # Esegui la funzione flights ogni giorno alle 18:58
+        current_time = time.localtime()
+        logging.debug(current_time)
+        #if current_time.tm_hour == 20 and current_time.tm_min == 8:
+        #    logging.debug("DEGUGGO sono qui")
         flights()
 
-        # Esegui altre funzioni che non sono pianificate con schedule
+        # Esegui altre funzioni non pianificate
         consumer.subscribe([kafka_topic2])
         consume_messages(consumer)
 
-        time.sleep(1)
+        # Aggiungi un ritardo prima di ripetere il ciclo
+        time.sleep(45)
     return "succes"
 
 

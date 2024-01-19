@@ -4,13 +4,16 @@ import schedule
 import time
 import requests
 import logging
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 import grpc
 import flight_pb2
 import flight_pb2_grpc
 from concurrent import futures
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from google.protobuf.json_format import Parse
 
 logging.basicConfig(level=logging.DEBUG)
@@ -42,16 +45,15 @@ conf = {
 #per maggiore sicurezza utilizzare le variabili
 #di ambiente del docker-compose in questo modo:
 #my_variable = os.environ.get('MY_VARIABLE')
-app.config['MAIL_SERVER'] = 'smtp.libero.it'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = 'angelo-cocuzza@libero.it'
-app.config['MAIL_PASSWORD'] = 'Bestflights123!'
-app.config['MAIL_DEFAULT_SENDER'] = 'angelo-cocuzza@libero.it'
+#app.config['MAIL_SERVER'] = 'smtp.libero.it'
+#app.config['MAIL_PORT'] = 465
+#app.config['MAIL_USE_TLS'] = False
+#app.config['MAIL_USE_SSL'] = True
+#app.config['MAIL_USERNAME'] = 'angelo-cocuzza@libero.it'
+#app.config['MAIL_PASSWORD'] = 'Bestflights123!'
+#app.config['MAIL_DEFAULT_SENDER'] = 'angelo-cocuzza@libero.it'
 
-mail.init_app(app)
-
+#mail.init_app(app)
 class BestFlights(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
@@ -79,63 +81,103 @@ class NotifierService(flight_pb2_grpc.FlightDataServiceServicer):
         logging.info("Dati ricevuti da gRPC")
         logging.info(f"{json_data}")
         # Ora json_data è un dizionario Python
+        process_flight_data(json_data)
         # Fai qualcosa con i dati JSON
 
         # Restituisci una risposta se necessario
         return flight_pb2.NotifyFlightDataSuccess(message="Dati ricevuti con successo")
 
 def save_to_database(flight_data):
+    with app.app_context():
+        logging.debug(f"ciao {flight_data['route'][0]}")
+        try:
+            new_flight = BestFlights(
+                user_id=flight_data['user_id'],
+                d_city_from=flight_data['route'][0]['cityFrom'],
+                d_airport_from=flight_data['route'][0]['flyFrom'],
+                d_airport_to=flight_data['route'][0]['flyTo'],
+                d_city_to=flight_data['route'][0]['cityTo'],
+                r_city_from=flight_data['route'][1]['cityFrom'],
+                r_airport_from=flight_data['route'][1]['flyFrom'],
+                r_airport_to=flight_data['route'][1]['flyTo'],
+                r_city_to=flight_data['route'][1]['cityTo'],
+                departure_date=flight_data['route'][0]['local_departure'],
+                return_date=flight_data['route'][1]['local_departure'],
+                price=flight_data['price']
+            )
 
-    logging.debug(f"ciao {flight_data['route'][0]}")
-    try:
-        new_flight = BestFlights(
-            user_id=flight_data['user_id'],
-            d_city_from=flight_data['route'][0]['cityFrom'],
-            d_airport_from=flight_data['route'][0]['flyFrom'],
-            d_airport_to=flight_data['route'][0]['flyTo'],
-            d_city_to=flight_data['route'][0]['cityTo'],
-            r_city_from=flight_data['route'][1]['cityFrom'],
-            r_airport_from=flight_data['route'][1]['flyFrom'],
-            r_airport_to=flight_data['route'][1]['flyTo'],
-            r_city_to=flight_data['route'][1]['cityTo'],
-            departure_date=flight_data['route'][0]['local_departure'],
-            return_date=flight_data['route'][1]['local_departure'],
-            price=flight_data['price']
-        )
+            #logging.debug(f"ciao 2 {new_flight}")
+            db.session.add(new_flight)
+            db.session.commit()
+            return 'Database aggiornato'
+        except Exception as e:
+            return f'Errore durante il salvataggio nel database: {e}'
 
-        #logging.debug(f"ciao 2 {new_flight}")
-        db.session.add(new_flight)
-        db.session.commit()
-        return 'Database aggiornato'
-    except Exception as e:
-        return f'Errore durante il salvataggio nel database: {e}'
+#def send_notification_email(to_email, subject, body):
+#    try:
+#        logging.debug("debug email funziona?")
+#        logging.debug(f"email{to_email}")
+#       msg = Message(subject = subject, recipients=[to_email])
+#        msg.body = body
+#        with current_app.app_context():
+#            mail.send(msg)
+        #logging.debug(f"{mail}")
+        #mail.send(msg)
+#        logging.debug("email inviata!!!!")
+#        return 'Email inviata con successo!'
+#    except Exception as e:
+#        return 'Errore durante l\'invio dell\'email: ' + str(e)
+
+
 
 def send_notification_email(to_email, subject, body):
     try:
-        msg = Message(subject = subject, recipients=[to_email])
-        msg.body = body
-        mail.send(msg)
+        # Configurare i dettagli del server SMTP
+        smtp_server = 'smtp.libero.it'
+        smtp_port = 465
+        smtp_username = 'angelo-cocuzza@libero.it'
+        smtp_password = 'Bestflights123!'
+
+        # Creare un oggetto del messaggio
+        msg = MIMEMultipart()
+        msg['From'] = 'angelo-cocuzza@libero.it'
+        msg['To'] = to_email
+        msg['Subject'] = subject
+
+        # Aggiungere il corpo del messaggio
+        msg.attach(MIMEText(body, 'plain'))
+
+        # Inizializzare la connessione SMTP
+        with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
+            server.login(smtp_username, smtp_password)
+            server.sendmail(msg['From'], msg['To'], msg.as_string())
+
+        logging.debug("Email inviata con successo!")
         return 'Email inviata con successo!'
     except Exception as e:
+        logging.error(f'Errore durante l\'invio dell\'email: {e}')
         return 'Errore durante l\'invio dell\'email: ' + str(e)
+
+
 
 def process_flight_data(flight_data):
     try:
-    #logging.debug(f"process_flight_dats : {flight_data}")
+        logging.debug(f"process_flight_dats : {flight_data}")
         max_price = float(flight_data['price'])  # Converti il prezzo in un numero a virgola mobile
-        existing_bf = BestFlights.query.filter_by(
-            user_id=flight_data['user_id'],
-            d_city_from=flight_data['route'][0]['cityFrom'],
-            d_airport_from=flight_data['route'][0]['flyFrom'],
-            d_airport_to=flight_data['route'][0]['flyTo'],
-            d_city_to=flight_data['route'][0]['cityTo'],
-            r_city_from=flight_data['route'][1]['cityFrom'],
-            r_airport_from=flight_data['route'][1]['flyFrom'],
-            r_airport_to=flight_data['route'][1]['flyTo'],
-            r_city_to=flight_data['route'][1]['cityTo'],
-            departure_date=flight_data['route'][0]['local_departure'],
-            return_date=flight_data['route'][1]['local_departure']
-        ).all()
+        with app.app_context():
+                existing_bf = BestFlights.query.filter_by(
+                user_id=flight_data['user_id'],
+                d_city_from=flight_data['route'][0]['cityFrom'],
+                d_airport_from=flight_data['route'][0]['flyFrom'],
+                d_airport_to=flight_data['route'][0]['flyTo'],
+                d_city_to=flight_data['route'][0]['cityTo'],
+                r_city_from=flight_data['route'][1]['cityFrom'],
+                r_airport_from=flight_data['route'][1]['flyFrom'],
+                r_airport_to=flight_data['route'][1]['flyTo'],
+                r_city_to=flight_data['route'][1]['cityTo'],
+                departure_date=flight_data['route'][0]['local_departure'],
+                return_date=flight_data['route'][1]['local_departure']
+            ).all()
 
         logging.debug(f"{existing_bf}")
 
@@ -184,7 +226,8 @@ def process_flight_data(flight_data):
                     f"Prezzo {flight_data['price']}\n") #da modificare
 
         # Esegui il commit delle modifiche al database
-        db.session.commit()
+        with app.app_context():
+            db.session.commit()
 
         to_email = flight_data['user_id']  # Specifica l'indirizzo email del destinatario non funziona quando si prende con le parentesi quadre dal json stesso problema nel database vedere come risolverlo
         subject = 'Nuove offerte di volo disponibili!'
@@ -210,7 +253,7 @@ def consume_messages(c):
             flight_data = msg.value()
             flight_data_string = flight_data.decode('utf-8')
             data = json.loads(flight_data_string)
-            process_flight_data(data)
+
 
     except Exception as e:
         print(f"Errore durante la lettura dei messaggi: {e}")
