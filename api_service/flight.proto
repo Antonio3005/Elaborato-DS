@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package flightdata;
+
+service FlightDataService {
+  rpc SendFlightData(FlightDataRequest) returns (NotifyFlightDataSuccess);
+}
+
+message FlightDataRequest {
+  string user_id = 1;
+  string cityFrom = 2;
+  string flyFrom = 3;
+  string flyTo = 4;
+  string cityTo = 5;
+  string local_departure = 6;
+  string price = 7;
+}
+
+message NotifyFlightDataSuccess {
+  string message = 1;
+}
+
