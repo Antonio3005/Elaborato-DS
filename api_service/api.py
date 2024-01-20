@@ -230,6 +230,7 @@ def consume_messages(c):
     try:
         while True:
             # Consuma i messaggi
+            #i messaggi ricevuti vengono letti lentamente, una soluzione potrebbe essere ridurre il poll?
             msg = c.poll(0.1)
             if msg is None:
                 logging.debug("non ci sono messaggi da leggere")
@@ -266,7 +267,7 @@ def schedule_jobs():
         # Esegui la funzione flights ogni giorno alle 18:58
         current_time = time.localtime()
         logging.debug(current_time)
-        if current_time.tm_hour == 8 and current_time.tm_min == 0:
+        if current_time.tm_hour == 11 and current_time.tm_min == 12:
             logging.debug("DEGUGGO sono qui")
             flights()
 
