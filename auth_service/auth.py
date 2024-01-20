@@ -8,9 +8,31 @@ import jwt
 import time
 import logging
 from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_client import Counter
 
 app = Flask(__name__, template_folder='templates')
 metrics = PrometheusMetrics(app)
+
+registered_users_metric = Counter(
+    'registered_users_total', 'Numero totale di register riusciti'
+)
+
+registration_attempts_email_exists = Counter(
+    'registration_attempts_email_exists_total', 'Numero totale di tentativi di registrazione con email già presente'
+)
+# metriche prometheus
+logged_users_metric = Counter(
+    'logged_users_total', 'Numero totale di login riusciti'
+)
+
+login_attemps_metric = Counter(
+    'login_attemps_total', 'Numero totale di tentativi di login'
+)
+
+login_failed_metrics = Counter(
+    'login_failed_total', 'Numero totale di login falliti'
+)
+
 CORS(app)
 SECRET_KEY=os.environ['SECRET_KEY']
 
@@ -19,6 +41,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_users/users"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -40,17 +63,18 @@ def api_login():
             username = request.form['username']
             password = request.form['password']
 
-            logging.error(f"Data: {username},,{password}")
-
-
-        #metrics.counter('login_attempts_total', 'Numero totale di tentativi di login').inc()
+            logging.debug(f"Data: {username},{password}")
+            login_attemps_metric.inc()
+            #metrics.counter('login_attempts_total', 'Numero totale di tentativi di login').inc()
             user = User.query.filter_by(username=username, password=password).first()
 
             if user:
+                logged_users_metric.inc()
                 #metrics.counter('successful_logins_total', 'Numero totale di login riusciti').inc()
                 token=createToken(username)
                 return jsonify({"success": True, "message": "Login riuscito", "token": token})
             else:
+                login_failed_metrics.inc()
                 #metrics.counter('failed_logins_total', 'Numero totale di login falliti').inc()
                 return jsonify({"success": False, "message": "Credenziali non valide. Riprova."})
     except Exception as e:
@@ -71,6 +95,7 @@ def api_register():
             existing_user = User.query.filter_by(username=username).first()
 
             if existing_user:
+                registration_attempts_email_exists.inc()
                 #metrics.counter('registration_attempts_email_exists_total', 'Numero totale di tentativi di registrazione con email già presente').inc()
                 return jsonify({"success": False, "message": "Questo username è già stato utilizzato. Scegli un altro."})
 
@@ -78,6 +103,7 @@ def api_register():
             db.session.add(new_user)
             db.session.commit()
 
+            registered_users_metric.inc()
             #metrics.counter('successful_registrations_total', 'Numero totale di registrazioni riuscite').inc()
             token=createToken(username)
             return jsonify({"success": True, "message": "Registrazione riuscita", "token": token})
