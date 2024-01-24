@@ -227,7 +227,7 @@ services:
   sla_manager:
     container_name: sla_manager
     build:
-      context: ./sla_Manager
+      context: ./sla_manager
       dockerfile: Dockerfile
     environment:
       MYSQL_DATABASE: 'users'
@@ -238,7 +238,7 @@ services:
       - "5005:5005"
     depends_on:
       - prometheus
-      - mysql_SLA
+      - mysql_sla
 
   cadvisor:
     image: google/cadvisor:latest

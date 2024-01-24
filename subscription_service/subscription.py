@@ -10,6 +10,7 @@ from confluent_kafka import Producer
 import time,psutil,shutil
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import Counter, Gauge
+from flask_apscheduler import APScheduler
 
 app = Flask(__name__)
 #app.template_folder = 'templates'
@@ -48,19 +49,20 @@ metrics = PrometheusMetrics(app)
 successful_subscription_metric = Counter(
     'successful_subscription_total', 'Numero totale di sottoscrizioni riuscite'
 )
+
 failed_subscription_metric = Counter(
     'failed_subscription_total', 'Numero totale di sottoscrizioni fallite'
 )
 subscription_processing_time_metric = Gauge(
-    'subscription_processing_time_seconds',
-    'Tempo di elaborazione delle iscrizioni'
+    'subscription_processing_time_seconds', 'Tempo di elaborazione delle iscrizioni'
 )
+
 api_response_time = Gauge('api_response_time_seconds', 'Tempo di risposta dell\'API in secondi')
 memory_usage = Gauge('memory_usage_percent', 'Utilizzo della memoria in percentuale')
 cpu_usage = Gauge('cpu_usage_percent', 'Utilizzo della CPU in percentuale')
 disk_space_used = Gauge('disk_space_used', 'Disk space used by the application in bytes')
 
-scheduler = BackgroundScheduler()
+scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
@@ -210,7 +212,7 @@ def measure_metrics():
     disk_space = shutil.disk_usage('/')
     disk_space_used.set(disk_space.used)
 
-scheduler.add_job(measure_metrics, 'interval', minutes=1)
+scheduler.add_job(id='metrics_job', func=measure_metrics, trigger='interval', minutes=1)
 
 if __name__ == '__main__':
     #app.run(debug=True, host='0.0.0.0', port=5001)

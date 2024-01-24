@@ -11,6 +11,7 @@ import psutil
 import shutil
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import Counter, Gauge
+from flask_apscheduler import APScheduler
 
 app = Flask(__name__, template_folder='templates')
 metrics = PrometheusMetrics(app)
@@ -51,7 +52,7 @@ SECRET_KEY=os.environ['SECRET_KEY']
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_users/users"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-scheduler = BackgroundScheduler()
+scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
@@ -143,7 +144,7 @@ def measure_metrics():
     disk_space = shutil.disk_usage('/')
     disk_space_usage.set(disk_space.used)
 
-scheduler.add_job(measure_metrics, 'interval', minutes=1)
+scheduler.add_job(id='metrics_job', func=measure_metrics, trigger='interval', minutes=1)
 
 if __name__ == '__main__':
     app.run()
