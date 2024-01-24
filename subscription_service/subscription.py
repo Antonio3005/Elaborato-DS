@@ -7,7 +7,9 @@ from datetime import datetime
 import jwt
 import json
 from confluent_kafka import Producer
-import time
+import time,psutil,shutil
+from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_client import Counter, Gauge
 
 app = Flask(__name__)
 #app.template_folder = 'templates'
@@ -40,6 +42,27 @@ class UserPreferences(db.Model):
 
 with app.app_context():
     db.create_all()
+
+metrics = PrometheusMetrics(app)
+
+successful_subscription_metric = Counter(
+    'successful_subscription_total', 'Numero totale di sottoscrizioni riuscite'
+)
+failed_subscription_metric = Counter(
+    'successful_subscription_total', 'Numero totale di sottoscrizioni riuscite'
+)
+subscription_processing_time_metric = Gauge(
+    'subscription_processing_time_seconds',
+    'Tempo di elaborazione delle iscrizioni'
+)
+api_response_time = Gauge('api_response_time_seconds', 'Tempo di risposta dell\'API in secondi')
+memory_usage = Gauge('memory_usage_percent', 'Utilizzo della memoria in percentuale')
+cpu_usage = Gauge('cpu_usage_percent', 'Utilizzo della CPU in percentuale')
+disk_space_used = Gauge('disk_space_used', 'Disk space used by the application in bytes')
+
+scheduler = BackgroundScheduler()
+scheduler.init_app(app)
+scheduler.start()
 
 
 #@app.route('/logout', methods=['POST'])
@@ -116,6 +139,7 @@ def send_to_kafka(user_preferences):
 @app.route('/api/subscription/<token>', methods=['POST'])
 def subscription(token):
     if request.method == 'POST':
+        start_time = time.time()  # Registra il tempo di inizio
         try:
             decoded_token = jwt.decode(token, key=SECRET_KEY, algorithms=['HS256'])
             logging.error(f"{decoded_token['username']}")
@@ -133,6 +157,12 @@ def subscription(token):
                     try:
                         validate_preferences(city_from, city_to, date_from, date_to, return_from, return_to, price_from, price_to)
                     except ValueError as ve:
+                        failed_subscription_metric.inc()
+                        end_time = time.time()  # Registra il tempo di fine
+                        # Calcola il tempo di elaborazione
+                        processing_time = end_time - start_time
+                        # Imposta la metrica Gauge con il tempo di elaborazione
+                        subscription_processing_time_metric.set(processing_time)
                         return f"Errore durante la registrazione: {ve}"
 
                     # Salva i valori nel database
@@ -148,9 +178,16 @@ def subscription(token):
 
                     # Invia i valori a Kafka
                     send_to_kafka(user_preferences)
+                    successful_subscription_metric.inc()
+                    end_time = time.time()  # Registra il tempo di fine
+                    # Calcola il tempo di elaborazione
+                    processing_time = end_time - start_time
+                    # Imposta la metrica Gauge con il tempo di elaborazione
+                    subscription_processing_time_metric.set(processing_time)
 
                     return jsonify({"success": True, "message": "Subscription riuscita"})
                 except ValueError as ve:
+
                     return jsonify({"success": False, "message": "Si è verificato un errore durante il login. Riprova più tardi."})
             else:
                 return jsonify({"success": False, "message": "Token scaduto"})
@@ -161,7 +198,19 @@ def subscription(token):
             #return make_response("", 401) #Unauthorized
 
     #return render_template('subscription.html', username=username)  # , preferences=preferences)
+def measure_metrics():
+    logging.error("CITY_METRICS")
 
+    memory_percent = psutil.virtual_memory().percent
+    memory_usage.set(memory_percent)
+
+    cpu_percent = psutil.cpu_percent(interval=1)
+    cpu_usage.set(cpu_percent)
+
+    disk_space = shutil.disk_usage('/')
+    disk_space_used.set(disk_space.used)
+
+scheduler.add_job(measure_metrics, 'interval', minutes=1)
 
 if __name__ == '__main__':
     #app.run(debug=True, host='0.0.0.0', port=5001)
