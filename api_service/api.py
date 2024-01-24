@@ -9,12 +9,32 @@ import time
 import grpc
 import flight_pb2
 import flight_pb2_grpc
-
+import time
+import logging
+import psutil
+import shutil
+from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_client import Counter, Gauge
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 app = Flask(__name__)
+
+memory_usage = Gauge(
+    'memory_usage_percent', 'Percentuale Memory usage')
+
+cpu_usage = Gauge(
+    'cpu_usage_percent', 'Percentuale CPU usage')
+
+disk_space_usage = Gauge(
+    'disk_space_usage', 'Disk space usage in bytes')
+
+iata_response_time = Gauge(
+    'iata_response_time_seconds', 'Tempo di risposta del servizio API di IATA')
+
+flights_response_time = Gauge(
+    'flights_response_time_seconds', 'Tempo di risposta del servizio API di flights')
 
 kafka_bootstrap_servers = 'kafka:9092'
 #kafka_topic1 = 'flights'
@@ -33,6 +53,10 @@ consumer = Consumer(**conf)
 #app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_subscription/subscription"
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_api/api"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+#scheduler = BackgroundScheduler()
+#scheduler.init_app(app)
+#scheduler.start()
 
 db = SQLAlchemy(app)
 
@@ -85,6 +109,7 @@ def send_flight_data(data):
 def get_iata(city):
 
     try:
+        start_time = time.time()
         url = 'https://api.tequila.kiwi.com/locations/query'
         headers = {
             'accept': 'application/json',
@@ -118,6 +143,16 @@ def get_iata(city):
         else:
             # Se la richiesta non è andata a buon fine, stampa il codice di stato
             print(f"Errore nella richiesta. Codice di stato: {response.status_code}")
+
+        end_time = time.time()  # Registra il tempo di fine della chiamata API
+
+        # Calcola il tempo totale di risposta
+        response_time = end_time - start_time
+
+        # Registra il tempo di risposta come un valore istantaneo nel Gauge
+        iata_response_time.set(response_time)
+
+
         return iata
     except Exception as e:
         print(f"Errore durante l'ottenimento di IATA per la città {city}: {e}")
@@ -126,6 +161,7 @@ def get_iata(city):
 # Function to get flights and insert into the database
 def get_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, price_from, price_to):
     try:
+        start_time = time.time()
         url = 'https://api.tequila.kiwi.com/v2/search'
         headers = {
             'accept': 'application/json',
@@ -157,6 +193,14 @@ def get_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, 
             # Iterate over the data and insert into the database
         else:
             print(f"Error: {response.status_code}, {response.text}")
+
+        end_time = time.time()  # Registra il tempo di fine della chiamata API
+
+        # Calcola il tempo totale di risposta
+        response_time = end_time - start_time
+
+        # Registra il tempo di risposta come un valore istantaneo nel Gauge
+        flights_response_time.set(response_time)
         return data
     except Exception as e:
         print(f"Errore durante l'ottenimento dei voli: {e}")
@@ -256,6 +300,19 @@ def consume_messages(c):
     #    c.close()
 
 
+def measure_metrics():
+    logging.error("AUTH_METRICS")
+
+    memory_percent = psutil.virtual_memory().percent
+    memory_usage.set(memory_percent)
+
+    cpu_percent = psutil.cpu_percent(interval=1)
+    cpu_usage.set(cpu_percent)
+
+    disk_space = shutil.disk_usage('/')
+    disk_space_usage.set(disk_space.used)
+
+#scheduler.add_job(measure_metrics, 'interval', minutes=1)
 
 
 #schedule.every().day.at("18:58").do(flights)
@@ -267,7 +324,7 @@ def schedule_jobs():
         # Esegui la funzione flights ogni giorno alle 18:58
         current_time = time.localtime()
         logging.debug(current_time)
-        if current_time.tm_hour == 11 and current_time.tm_min == 12:
+        if current_time.tm_hour == 8 and current_time.tm_min == 0:
             logging.debug("DEGUGGO sono qui")
             flights()
 
@@ -275,6 +332,7 @@ def schedule_jobs():
         consumer.subscribe([kafka_topic2])
         consume_messages(consumer)
 
+        measure_metrics()
         # Aggiungi un ritardo prima di ripetere il ciclo
         time.sleep(45)
     return "succes"

@@ -14,7 +14,10 @@ from concurrent import futures
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from google.protobuf.json_format import Parse
+import psutil
+import shutil
+from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_client import Counter, Gauge
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -26,6 +29,18 @@ mail = Mail(app)
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_bestflights/bestflights"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+memory_usage = Gauge(
+    'memory_usage_percent', 'Percentuale Memory usage')
+
+cpu_usage = Gauge(
+    'cpu_usage_percent', 'Percentuale CPU usage')
+
+disk_space_usage = Gauge(
+    'disk_space_usage', 'Disk space usage in bytes')
+
+email_send_time = Gauge(
+    'email_send_time_seconds', 'Tempo di invio di una email')
 
 db = SQLAlchemy(app)
 
@@ -115,6 +130,7 @@ def save_to_database(flight_data):
 
 def send_notification_email(to_email, subject, body):
     try:
+        start_time = time.time()
         # Configurare i dettagli del server SMTP
         smtp_server = 'smtp.libero.it'
         smtp_port = 465
@@ -139,12 +155,17 @@ def send_notification_email(to_email, subject, body):
             server.login(smtp_username, smtp_password)
             server.sendmail(msg['From'], msg['To'], msg.as_string())
 
+        end_time = time.time()
+        # Calcola il tempo totale di invio dell'email
+        send_time = end_time - start_time
+        # Registra il tempo di invio come un valore istantaneo nel Gauge
+        email_send_time.set(send_time)
+
         logging.debug("Email inviata con successo!")
         return 'Email inviata con successo!'
     except Exception as e:
         logging.error(f'Errore durante l\'invio dell\'email: {e}')
         return 'Errore durante l\'invio dell\'email: ' + str(e)
-
 
 
 def process_flight_data(flight_data):
@@ -232,6 +253,27 @@ def serve():
     logging.info("Il server gRPC è in esecuzione.")
     server.wait_for_termination()
 
+def measure_metrics():
+    logging.error("AUTH_METRICS")
+
+    memory_percent = psutil.virtual_memory().percent
+    memory_usage.set(memory_percent)
+
+    cpu_percent = psutil.cpu_percent(interval=1)
+    cpu_usage.set(cpu_percent)
+
+    disk_space = shutil.disk_usage('/')
+    disk_space_usage.set(disk_space.used)
+
+def schedule_jobs():
+
+    #implementare consumer kafka
+    measure_metrics()
+    # Aggiungi un ritardo prima di ripetere il ciclo
+    time.sleep(45)
+
 if __name__ == '__main__':
     #app.run(debug=True, host='0.0.0.0', port=5003)
+    #dato che implementeremo kafka andremo da sostituire server con shedule_jobs
+    #schedule_jobs()
     serve()
