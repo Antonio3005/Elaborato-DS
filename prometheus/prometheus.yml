@@ -16,7 +16,7 @@ scrape_configs:
 
   - job_name: 'subscription_service'
     static_configs:
-      - targets: [ 'subscription_service:5001' ]
+      - targets: [ 'subscription_service:5000' ]
 
   - job_name: 'api_service'
     static_configs:
