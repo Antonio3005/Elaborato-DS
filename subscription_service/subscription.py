@@ -49,7 +49,7 @@ successful_subscription_metric = Counter(
     'successful_subscription_total', 'Numero totale di sottoscrizioni riuscite'
 )
 failed_subscription_metric = Counter(
-    'successful_subscription_total', 'Numero totale di sottoscrizioni riuscite'
+    'failed_subscription_total', 'Numero totale di sottoscrizioni fallite'
 )
 subscription_processing_time_metric = Gauge(
     'subscription_processing_time_seconds',
