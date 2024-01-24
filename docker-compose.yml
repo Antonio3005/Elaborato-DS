@@ -5,6 +5,7 @@ volumes:
   mysql_data_subscription:
   mysql_data_api:
   mysql_data_bestflights:
+  mysql_data_sla:
 
 networks:
   mainetwork:
@@ -206,6 +207,38 @@ services:
     depends_on:
       - mysql_bestflights
       - kafka
+
+  mysql_sla:
+    image: mysql:latest
+    container_name: mysql_sla
+    environment:
+      MYSQL_ROOT_PASSWORD: '12345'
+      MYSQL_DATABASE: 'sla'
+      MYSQL_USER: 'an'
+      MYSQL_PASSWORD: '12345'
+    networks:
+      - mainetwork
+    volumes:
+      - mysql_data_sla:/var/lib/mysql
+    ports:
+      - "9096:3306"
+    restart: always
+
+  sla_manager:
+    container_name: sla_manager
+    build:
+      context: ./sla_Manager
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_DATABASE: 'users'
+      MYSQL_USER: 'an'
+      MYSQL_PASSWORD: '12345'
+      MYSQL_ROOT_PASSWORD: '12345'
+    ports:
+      - "5005:5005"
+    depends_on:
+      - prometheus
+      - mysql_SLA
 
   cadvisor:
     image: google/cadvisor:latest

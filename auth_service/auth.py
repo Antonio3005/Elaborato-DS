@@ -7,8 +7,10 @@ import os
 import jwt
 import time
 import logging
+import psutil
+import shutil
 from prometheus_flask_exporter import PrometheusMetrics
-from prometheus_client import Counter
+from prometheus_client import Counter, Gauge
 
 app = Flask(__name__, template_folder='templates')
 metrics = PrometheusMetrics(app)
@@ -33,12 +35,25 @@ login_failed_metrics = Counter(
     'login_failed_total', 'Numero totale di login falliti'
 )
 
+memory_usage = Gauge(
+    'memory_usage_percent', 'Percentuale Memory usage')
+
+cpu_usage = Gauge(
+    'cpu_usage_percent', 'Percentuale CPU usage')
+
+disk_space_usage = Gauge(
+    'disk_space_usage', 'Disk space usage in bytes')
+
 CORS(app)
 SECRET_KEY=os.environ['SECRET_KEY']
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_users/users"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+scheduler = BackgroundScheduler()
+scheduler.init_app(app)
+scheduler.start()
 
 db = SQLAlchemy(app)
 
@@ -116,6 +131,19 @@ def createToken(username):
     token = jwt.encode(payload=t_data, key=SECRET_KEY, algorithm="HS256")
     return token
 
+def measure_metrics():
+    logging.error("AUTH_METRICS")
+
+    memory_percent = psutil.virtual_memory().percent
+    memory_usage.set(memory_percent)
+
+    cpu_percent = psutil.cpu_percent(interval=1)
+    cpu_usage.set(cpu_percent)
+
+    disk_space = shutil.disk_usage('/')
+    disk_space_usage.set(disk_space.used)
+
+scheduler.add_job(measure_metrics, 'interval', minutes=1)
 
 if __name__ == '__main__':
     app.run()
