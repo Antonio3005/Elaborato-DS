@@ -22,7 +22,7 @@ registered_users_metric = Counter(
 registration_attempts_email_exists = Counter(
     'registration_attempts_email_exists_total', 'Numero totale di tentativi di registrazione con email già presente'
 )
-# metriche prometheus
+
 logged_users_metric = Counter(
     'logged_users_total', 'Numero totale di login riusciti'
 )
