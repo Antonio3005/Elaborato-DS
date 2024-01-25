@@ -20,8 +20,8 @@ scrape_configs:
 
   - job_name: 'api_service'
     static_configs:
-      - targets: [ 'api_service:5002' ]
+      - targets: [ 'api_service:5000' ]
 
   - job_name: 'notifier_service'
     static_configs:
-      - targets: [ 'notifier_service:5003' ]
+      - targets: [ 'notifier_service:5000' ]

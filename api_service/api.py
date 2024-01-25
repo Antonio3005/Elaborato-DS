@@ -14,7 +14,7 @@ import logging
 import psutil
 import shutil
 from prometheus_flask_exporter import PrometheusMetrics
-from prometheus_client import Counter, Gauge
+from prometheus_client import Counter, Gauge, start_http_server
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -345,4 +345,5 @@ if __name__ == '__main__':
     #while True:
     #    schedule.run_pending()
     #    time.sleep(1)
+    start_http_server(5000)
     schedule_jobs()

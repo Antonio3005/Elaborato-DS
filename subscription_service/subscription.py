@@ -58,9 +58,15 @@ subscription_processing_time_metric = Gauge(
 )
 
 api_response_time = Gauge('api_response_time_seconds', 'Tempo di risposta dell\'API in secondi')
-memory_usage = Gauge('memory_usage_percent', 'Utilizzo della memoria in percentuale')
-cpu_usage = Gauge('cpu_usage_percent', 'Utilizzo della CPU in percentuale')
-disk_space_used = Gauge('disk_space_used', 'Disk space used by the application in bytes')
+
+memory_usage = Gauge(
+    'memory_usage_percent', 'Percentuale Memory usage')
+
+cpu_usage = Gauge(
+    'cpu_usage_percent', 'Percentuale CPU usage')
+
+disk_space_usage = Gauge(
+    'disk_space_usage', 'Disk space usage in bytes')
 
 scheduler = APScheduler()
 scheduler.init_app(app)
@@ -210,7 +216,7 @@ def measure_metrics():
     cpu_usage.set(cpu_percent)
 
     disk_space = shutil.disk_usage('/')
-    disk_space_used.set(disk_space.used)
+    disk_space_usage.set(disk_space.used)
 
 scheduler.add_job(id='metrics_job', func=measure_metrics, trigger='interval', minutes=1)
 

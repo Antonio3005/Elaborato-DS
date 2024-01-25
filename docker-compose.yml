@@ -6,6 +6,7 @@ volumes:
   mysql_data_api:
   mysql_data_bestflights:
   mysql_data_sla:
+  prometheus_data:
 
 networks:
   mainetwork:
@@ -251,6 +252,8 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+    depends_on:
+      - prometheus
 
   node_exporter:
     image: prom/node-exporter:latest
@@ -258,6 +261,8 @@ services:
       - "9100:9100"
     networks:
       - mainetwork
+    depends_on:
+      - prometheus
 
   prometheus:
     image: prom/prometheus:latest
@@ -267,11 +272,10 @@ services:
       - mainetwork
     volumes:
       - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
       - "--web.console.libraries=/etc/prometheus/console_libraries"
       - "--web.console.templates=/etc/prometheus/consoles"
-    depends_on:
-      - cadvisor
-      - node_exporter
+

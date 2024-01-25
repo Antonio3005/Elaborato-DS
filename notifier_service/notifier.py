@@ -17,7 +17,7 @@ from email.mime.multipart import MIMEMultipart
 import psutil
 import shutil
 from prometheus_flask_exporter import PrometheusMetrics
-from prometheus_client import Counter, Gauge
+from prometheus_client import Counter, Gauge, start_http_server
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -276,4 +276,5 @@ if __name__ == '__main__':
     #app.run(debug=True, host='0.0.0.0', port=5003)
     #dato che implementeremo kafka andremo da sostituire server con shedule_jobs
     #schedule_jobs()
+    start_http_server(5000)
     serve()
