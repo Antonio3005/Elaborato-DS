@@ -47,6 +47,7 @@ conf = {
 }
 #producer = Producer(**conf)
 consumer = Consumer(**conf)
+consumer.subscribe([kafka_topic2])
 
 
 # Configurazione del database MySQL con SQLAlchemy
@@ -329,7 +330,6 @@ def schedule_jobs():
             flights()
 
         # Esegui altre funzioni non pianificate
-        consumer.subscribe([kafka_topic2])
         consume_messages(consumer)
 
         measure_metrics()
