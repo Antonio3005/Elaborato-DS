@@ -69,11 +69,21 @@
                     //    "<li>" + "violation: " + data.violation + "</li>" +
                     //    "</ul>";
                     //document.getElementById('SLAResult').innerHTML = listaHTML;
-                    var dict = data.metrics;
-                    console.log("sono qui");
+                    //var dict = data.metrics;
+                    for (var key in data.metrics) {
+                        // Verifica se la chiave è effettivamente una proprietà dell'oggetto e non ereditata
+                        if (data.metrics.hasOwnProperty(key)) {
+                            // Accede al valore associato a questa chiave
+                            var value = data.metrics[key];
+
+                            // Ora puoi utilizzare key e value come desideri
+                            console.log("Metrica:", key, "Valore:", value);
+                        }
+                    }
                     alert(data.message)
                 }
                 else {
+                    console.log("sono qui");
                     alert(data.message);
                 }
             })
@@ -101,7 +111,8 @@
                     //    "<li>" + "violation: " + data.violation + "</li>" +
                     //    "</ul>";
                     //document.getElementById('SLAResult').innerHTML = listaHTML;
-                    var status = data.metrics;
+                    var status = data.status;
+                    console.log(status)
                     alert(data.message)
                 }
                 else {
@@ -133,7 +144,7 @@
                     //    "<li>" + "violations count last 6 hours: " + data.violations_count_last_6_hours + "</li>" +
                     //    "</ul>";
                     //document.getElementById('SLAResult').innerHTML = listaHTML;
-                    var violations = data.metrics;
+                    var violations = data.violations;
                     alert(data.message)
                 }
                 else {
@@ -166,7 +177,7 @@
                     //    "<li>" + "violations count last 6 hours: " + data.violations_count_last_6_hours + "</li>" +
                     //    "</ul>";
                     //document.getElementById('SLAResult').innerHTML = listaHTML;
-                    var probability = data.metrics;
+                    var probability = data.probability;
                     alert(data.message)
                 }
                 else {

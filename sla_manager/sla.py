@@ -14,7 +14,7 @@ CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://an:12345@mysql_sla/sla'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-PROMETHEUS = "http://prometheus-1:9090/"
+PROMETHEUS = "http://elaborato-ds-prometheus-1:9090/"
 
 db = SQLAlchemy(app)
 class Metrics(db.Model):
@@ -47,7 +47,7 @@ def add():
 def get_status():
     try:
         # Recupera tutte le metriche dal database
-        logging.debug("sono qui metriche}")
+        logging.debug("sono qui metriche")
         metrics = Metrics.query.all()
         logging.debug(f"metriche {metrics}")
 
