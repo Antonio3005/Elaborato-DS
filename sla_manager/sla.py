@@ -134,6 +134,7 @@ def get_violations():
 
                 for _, row in df.iterrows():
                     val = row[df.columns[0]]
+                    val = float(val)
                     if val < min_v or val > max_v:
                         violations += 1
 
@@ -146,13 +147,12 @@ def get_violations():
     except Exception as e:
         return jsonify({"success": False, "message": "Si è verificato un errore durante l'elaborazione della richiesta."})
 
-from flask import jsonify
 
-@app.route("/api/probability", methods=['GET'])
+@app.route("/api/probability", methods=['POST'])
 def get_probability():
-    try:
+    #try:
         # Durata in secondi della previsione nel futuro
-        future_seconds = int(request.args.get("seconds"))
+        future_seconds = int(request.form['x_seconds'])
 
         metrics = Metrics.query.all()
 
@@ -177,7 +177,7 @@ def get_probability():
             df = df.set_index('Time')
 
             # Qui generare la previsione e l'intervallo
-            conf_int = forecast.forecast(df).get_ConfInt()
+            conf_int = forecast.forecast(metric_n, df).get_ConfInt()
             low_int = conf_int["lower Value"]
             up_int = conf_int["upper Value"]
 
@@ -203,8 +203,8 @@ def get_probability():
 
         return jsonify({"success": True, "message": "Probabilità di violazione.", "probability": probability_data})
 
-    except Exception as e:
-        return jsonify({"success": False, "message": "Si è verificato un errore durante l'elaborazione della richiesta."})
+    #except Exception as e:
+    #    return jsonify({"success": False, "message": "Si è verificato un errore durante l'elaborazione della richiesta."})
 
 
 

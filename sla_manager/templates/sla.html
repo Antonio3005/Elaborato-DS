@@ -16,6 +16,9 @@
     <label for="max_value">Max Value:</label>
     <input type="text" id="max_value" name="max_value" required>
 
+    <label for="x_seconds">X Seconds:</label>
+    <input type="text" id="x_seconds" name="x_seconds" required>
+
     <button type="button" onclick="AddMetric()">Add metric</button>
     <button type="button" onclick="MetricStatus()">Metrics Status</button>
     <button type="button" onclick="SingleMetricStatus()">Single Metric Status</button>
@@ -162,8 +165,8 @@
         const formData = new FormData(document.getElementById('SLAForm'));
 
         fetch('http://localhost:8081/sla/api/probability', {
-            method: 'GET',
-            //body: formData
+            method: 'POST',
+            body: formData
         })
             .then(response => response.json())
             .then(data => {
