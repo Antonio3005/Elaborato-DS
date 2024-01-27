@@ -1,12 +1,12 @@
 import time, requests, os
-from datetime import datetime, timedelta
 import logging
-from threading import Thread
 from flask_cors import CORS
 import schedule
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import relationship
+import pandas as pd
+import forecast
+from datetime import datetime, timedelta
 
 
 app = Flask(__name__)
@@ -14,37 +14,28 @@ CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://an:12345@mysql_sla/sla'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-PROMETHEUS = "http://prometheus:9090/"
+PROMETHEUS = "http://prometheus-1:9090/"
 
 db = SQLAlchemy(app)
 class Metrics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    metric_name = db.Column(db.String(50), nullable=False)
-    desired_value = db.Column(db.Float, nullable=False)
-    job_name = db.Column(db.String(50), nullable=False)
+    metric_name = db.Column(db.String(255), nullable=False)
+    min_value = db.Column(db.String(255), nullable=False)
+    max_value = db.Column(db.String(255), nullable=False)
 
-    #violations = relationship('Violation', back_populates='sla')
+with app.app_context():
+    db.create_all()
 
-
-# Definizione del modello delle violazioni
-class Violations(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    sla_id = db.Column(db.Integer, db.ForeignKey('sla.id'), nullable=False)
-    value = db.Column(db.Float, nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False)
-
-    #sla = relationship('SLA_table', back_populates='violations')
-
-@app.post("/api/add", methods=['POST'])
+@app.route("/api/add", methods=['POST'])
 def add():
     try:
         if request.method == 'POST':
             metric_n = request.form['metric_name']
-            desired_v = request.form['desired_value']
-            job_n = request.form['job_name']
+            min_v = request.form['min_value']
+            max_v = request.form['max_value']
 
             #istance = Metrics.query.filter_by(metric_name=metric_n, job_name=job_n).first()
-            new_metric=Metrics(metric_name=metric_n, desired_value=desired_v, job_name=job_n)
+            new_metric=Metrics(metric_name=metric_n, min_value=min_v, max_value=max_v)
             db.session.add(new_metric)
             db.session.commit()
 
@@ -52,23 +43,170 @@ def add():
     except Exception as e:
         return jsonify({"success": False, "message": "Si è verificato un errore durante la registrazione. Riprova più tardi."})
 
+@app.route("/api/status", methods=['GET'])
+def get_status():
+    try:
+        # Recupera tutte le metriche dal database
+        logging.debug("sono qui metriche}")
+        metrics = Metrics.query.all()
+        logging.debug(f"metriche {metrics}")
+
+        dict = {}
+
+        for metric in metrics:
+            metric_n = metric.metric_name
+            min_v = float(metric.min_value)
+            max_v = float(metric.max_value)
+
+            query = metric_n
+
+            # Esegue la query a Prometheus per ottenere il valore attuale della metrica
+            response = requests.get(PROMETHEUS + '/api/v1/query', params={'query': query})
+            logging.debug(f"risposta {response}")
+            result = float(response.json()['data']['result'][0]['value'][1])
+            logging.debug(f"risposta {result}")
+
+            # Verifica se il valore è nel range specificato dagli SLO
+            if min_v <= result <= max_v:
+                dict[metric_n] = True
+            else:
+                dict[metric_n] = False
+
+        return jsonify({"success": True, "message": "Stato delle metriche", "metrics": dict})
+
+    except Exception as e:
+        logging.debug("sono qui")
+        return jsonify({"success": False, "message": "Si è verificato un errore durante l'elaborazione della richiesta."})
 
 
-with app.app_context():
-    db.create_all()
+@app.route("/api/singlestatus/", methods=['POST'])
+def get_singlestatus():
+    try:
+        if request.method == 'POST':
+            metric_n = request.form['metric_name']
+
+            query=metric_n
+
+            response = requests.get(PROMETHEUS + '/api/v1/query', params={'query': query})
+            result = response.json()['data']['result']
+
+            return jsonify({"success": True, "message": "Stato della metrica", "status": result})
+    except Exception as e:
+        return jsonify({"success": False, "message": "Si è verificato un errore durante la registrazione. Riprova più tardi."})
 
 
 
 
+@app.route("/api/violations", methods=['GET'])
+def get_violations():
+    try:
+        # Definisci i periodi di tempo desiderati
+        periods = [1, 3, 6]  # Periodi in ore
 
+        violations_data = []
 
+        for period in periods:
+            start_time = datetime.now() - timedelta(hours=period)
+            end_time = datetime.now()
 
+            metrics = Metrics.query.all()
 
+            violations_count = {}
 
+            for metric in metrics:
+                metric_n = metric.metric_name
+                min_v = float(metric.min_value)
+                max_v = float(metric.max_value)
 
+                query=metric_n
+
+                response = requests.get(PROMETHEUS + '/api/v1/query_range',
+                                        params={'query': query, 'start': start_time.timestamp(),
+                                                'end': end_time.timestamp(), 'step': '15s'})
+
+                result = response.json()['data']['result'][0]['values']
+
+                df = pd.DataFrame(result, columns=['Time', 'Value'])
+                df['Time'] = pd.to_datetime(df['Time'], unit='s')
+                df = df.set_index('Time')
+
+                violations = 0
+
+                for _, row in df.iterrows():
+                    val = row[df.columns[0]]
+                    if val < min_v or val > max_v:
+                        violations += 1
+
+                violations_count[metric_n] = violations
+
+            violations_data.append({f"{period}_hours": violations_count})
+
+        return jsonify({"success": True, "message": "Violazioni generate", "violations": violations_data})
+
+    except Exception as e:
+        return jsonify({"success": False, "message": "Si è verificato un errore durante l'elaborazione della richiesta."})
+
+from flask import jsonify
+
+@app.route("/api/probability", methods=['GET'])
+def get_probability():
+    try:
+        # Durata in secondi della previsione nel futuro
+        future_seconds = int(request.args.get("seconds"))
+
+        metrics = Metrics.query.all()
+
+        # Dizionario con nome metrica e probabilità di violazione
+        probability_data = {}
+
+        for metric in metrics:
+            metric_n = metric.metric_name
+            min_v = float(metric.min_value)
+            max_v = float(metric.max_value)
+
+            query = metric_n
+
+            response = requests.get(PROMETHEUS + '/api/v1/query_range',
+                                    params={'query': query, 'start': time.time(), 'end': time.time() + future_seconds,
+                                            'step': '15s'})
+
+            result = response.json()['data']['result'][0]['values']
+
+            df = pd.DataFrame(result, columns=['Time', 'Value'])
+            df['Time'] = pd.to_datetime(df['Time'], unit='s')
+            df = df.set_index('Time')
+
+            # Qui generare la previsione e l'intervallo
+            conf_int = forecast.forecast(df).get_ConfInt()
+            low_int = conf_int["lower Value"]
+            up_int = conf_int["upper Value"]
+
+            # Qui vedere il massimo della probabilità
+            umax = up_int.max()
+            lmax = low_int.max()
+            umin = up_int.min()
+            lmin = low_int.min()
+            distanzasup = umax - lmax
+            distanzainf = umin - lmin
+            psup = 0
+            if umax > max_v:
+                psup += (umax - max_v) / distanzasup
+            if lmax < min_v:
+                psup += (min_v - lmax) / distanzasup
+            pinf = 0
+            if umin > max_v:
+                psup += (umin - max_v) / distanzainf
+            if lmin < min_v:
+                psup += (min_v - lmin) / distanzainf
+
+            probability_data[metric_n] = min(max(psup, pinf), 1)
+
+        return jsonify({"success": True, "message": "Probabilità di violazione.", "probability": probability_data})
+
+    except Exception as e:
+        return jsonify({"success": False, "message": "Si è verificato un errore durante l'elaborazione della richiesta."})
 
 
 
 if __name__ == '__main__':
-    #app.run(debug=True, host='0.0.0.0', port=5001)
     app.run()

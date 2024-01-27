@@ -37,13 +37,13 @@ login_failed_metrics = Counter(
 )
 
 memory_usage = Gauge(
-    'memory_usage_percent', 'Percentuale Memory usage')
+    'memory_usage_percent_auth', 'Percentuale Memory usage')
 
 cpu_usage = Gauge(
-    'cpu_usage_percent', 'Percentuale CPU usage')
+    'cpu_usage_percent_auth', 'Percentuale CPU usage')
 
 disk_space_usage = Gauge(
-    'disk_space_usage', 'Disk space usage in bytes')
+    'disk_space_usage_auth', 'Disk space usage in bytes')
 
 CORS(app)
 SECRET_KEY=os.environ['SECRET_KEY']

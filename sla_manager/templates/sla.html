@@ -10,12 +10,17 @@
     <label for="metric_name">Metric name:</label>
     <input type="text" id="metric_name" name="metric_name" required>
 
-    <label for="desired_value">Desidered Value:</label>
-    <input type="text" id="desired_value" name="desired_value" required>
+    <label for="min_value">Min Value:</label>
+    <input type="text" id="min_value" name="min_value" required>
+
+    <label for="max_value">Max Value:</label>
+    <input type="text" id="max_value" name="max_value" required>
 
     <button type="button" onclick="AddMetric()">Add metric</button>
-    <button type="button" onclick="MetricState()">Metric State</button>
-    <button type="button" onclick="PastViolations()">Past violations</button>
+    <button type="button" onclick="MetricStatus()">Metrics Status</button>
+    <button type="button" onclick="SingleMetricStatus()">Single Metric Status</button>
+    <button type="button" onclick="Violations()">Violations</button>
+    <button type="button" onclick="Probability()">Probability of violations</button>
     <!-- <button type="button" onclick="FindMetric()">Violation probability</button>-->
 </form>
 
@@ -46,30 +51,30 @@
             });
     }
 
-    function MetricState() {
+    function MetricStatus() {
         const formData = new FormData(document.getElementById('SLAForm'));
 
-        fetch('http://localhost:8085/sla_manager/sla_current_state', {
-            method: 'POST',
-            body: formData
+        fetch('http://localhost:8081/sla/api/status', {
+            method: 'GET',
+            //body: formData
         })
             .then(response => response.json())
             .then(data => {
 
-                if (data.state === 0) {
+                if (data.success) {
                     // Creazione della stringa HTML con un elenco non ordinato
-                    var listaHTML = "<ul>" +
-                        "<li>" + "current value: " + data.current_value + "</li>" +
-                        "<li>" + "desired value: " + data.desired_value + "</li>" +
-                        "<li>" + "violation: " + data.violation + "</li>" +
-                        "</ul>";
-                    document.getElementById('SLAResult').innerHTML = listaHTML;
-                }
-                else if (data.state ===2) {
-                    alert("metrica al momento non disponibile")
+                    //var listaHTML = "<ul>" +
+                    //    "<li>" + "current value: " + data.current_value + "</li>" +
+                    //    "<li>" + "desired value: " + data.desired_value + "</li>" +
+                    //    "<li>" + "violation: " + data.violation + "</li>" +
+                    //    "</ul>";
+                    //document.getElementById('SLAResult').innerHTML = listaHTML;
+                    var dict = data.metrics;
+                    console.log("sono qui");
+                    alert(data.message)
                 }
                 else {
-                    alert('Metrica non presente nel contratto');
+                    alert(data.message);
                 }
             })
             .catch(error => {
@@ -78,27 +83,29 @@
             });
     }
 
-    function PastViolations() {
+    function SingleMetricStatus() {
         const formData = new FormData(document.getElementById('SLAForm'));
 
-        fetch('http://localhost:8085/sla_manager/sla_past_violations', {
+        fetch('http://localhost:8081/sla/api/singlestatus', {
             method: 'POST',
             body: formData
         })
             .then(response => response.json())
             .then(data => {
 
-                if (data.state === 0) {
+                if (data.success) {
                     // Creazione della stringa HTML con un elenco non ordinato
-                    var listaHTML = "<ul>" +
-                        "<li>" + "desired value: " + data.desired_value + "</li>" +
-                        "<li>" + "violations count last hour: " + data.violations_count_last_hour + "</li>" +
-                        "<li>" + "violations count last 3 hours: " + data.violations_count_last_3_hours + "</li>" +
-                        "<li>" + "violations count last 6 hours: " + data.violations_count_last_6_hours + "</li>" +
-                        "</ul>";
-                    document.getElementById('SLAResult').innerHTML = listaHTML;
-                } else {
-                    document.getElementById('SLAResult').innerHTML = 'Metrica non presente nel contratto';
+                    //var listaHTML = "<ul>" +
+                    //    "<li>" + "current value: " + data.current_value + "</li>" +
+                    //    "<li>" + "desired value: " + data.desired_value + "</li>" +
+                    //    "<li>" + "violation: " + data.violation + "</li>" +
+                    //    "</ul>";
+                    //document.getElementById('SLAResult').innerHTML = listaHTML;
+                    var status = data.metrics;
+                    alert(data.message)
+                }
+                else {
+                    alert(data.message);
                 }
             })
             .catch(error => {
@@ -107,6 +114,71 @@
             });
     }
 
+    function Violations() {
+        const formData = new FormData(document.getElementById('SLAForm'));
+
+        fetch('http://localhost:8081/sla/api/violations', {
+            method: 'GET',
+            //body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.success) {
+                    // Creazione della stringa HTML con un elenco non ordinato
+                    //var listaHTML = "<ul>" +
+                    //    "<li>" + "desired value: " + data.desired_value + "</li>" +
+                    //    "<li>" + "violations count last hour: " + data.violations_count_last_hour + "</li>" +
+                    //    "<li>" + "violations count last 3 hours: " + data.violations_count_last_3_hours + "</li>" +
+                    //    "<li>" + "violations count last 6 hours: " + data.violations_count_last_6_hours + "</li>" +
+                    //    "</ul>";
+                    //document.getElementById('SLAResult').innerHTML = listaHTML;
+                    var violations = data.metrics;
+                    alert(data.message)
+                }
+                else {
+                    alert(data.message);
+                    //document.getElementById('SLAResult').innerHTML = 'Metrica non presente nel contratto';
+                }
+            })
+            .catch(error => {
+                console.error('Errore durante la richiesta', error);
+                alert('Si è verificato un errore durante la richiesta');
+            });
+    }
+
+    function Probability() {
+        const formData = new FormData(document.getElementById('SLAForm'));
+
+        fetch('http://localhost:8081/sla/api/probability', {
+            method: 'GET',
+            //body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.success) {
+                    // Creazione della stringa HTML con un elenco non ordinato
+                    //var listaHTML = "<ul>" +
+                    //    "<li>" + "desired value: " + data.desired_value + "</li>" +
+                    //    "<li>" + "violations count last hour: " + data.violations_count_last_hour + "</li>" +
+                    //    "<li>" + "violations count last 3 hours: " + data.violations_count_last_3_hours + "</li>" +
+                    //    "<li>" + "violations count last 6 hours: " + data.violations_count_last_6_hours + "</li>" +
+                    //    "</ul>";
+                    //document.getElementById('SLAResult').innerHTML = listaHTML;
+                    var probability = data.metrics;
+                    alert(data.message)
+                }
+                else {
+                    alert(data.message);
+                    //document.getElementById('SLAResult').innerHTML = 'Metrica non presente nel contratto';
+                }
+            })
+            .catch(error => {
+                console.error('Errore durante la richiesta', error);
+                alert('Si è verificato un errore durante la richiesta');
+            });
+    }
 
 </script>
 </body>

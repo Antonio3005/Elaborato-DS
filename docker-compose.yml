@@ -235,6 +235,8 @@ services:
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
+    networks:
+      - mainetwork
     ports:
       - "5005:5005"
     depends_on:

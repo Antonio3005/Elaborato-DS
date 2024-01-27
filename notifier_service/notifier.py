@@ -31,13 +31,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://an:12345@mysql_bestflights/best
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 memory_usage = Gauge(
-    'memory_usage_percent', 'Percentuale Memory usage')
+    'memory_usage_percent_notifier', 'Percentuale Memory usage')
 
 cpu_usage = Gauge(
-    'cpu_usage_percent', 'Percentuale CPU usage')
+    'cpu_usage_percent_notifier', 'Percentuale CPU usage')
 
 disk_space_usage = Gauge(
-    'disk_space_usage', 'Disk space usage in bytes')
+    'disk_space_usage_notifier', 'Disk space usage in bytes')
 
 email_send_time = Gauge(
     'email_send_time_seconds', 'Tempo di invio di una email')

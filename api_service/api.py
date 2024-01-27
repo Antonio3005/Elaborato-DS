@@ -22,13 +22,13 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 
 memory_usage = Gauge(
-    'memory_usage_percent', 'Percentuale Memory usage')
+    'memory_usage_percent_api', 'Percentuale Memory usage')
 
 cpu_usage = Gauge(
-    'cpu_usage_percent', 'Percentuale CPU usage')
+    'cpu_usage_percent_api', 'Percentuale CPU usage')
 
 disk_space_usage = Gauge(
-    'disk_space_usage', 'Disk space usage in bytes')
+    'disk_space_usage_api', 'Disk space usage in bytes')
 
 iata_response_time = Gauge(
     'iata_response_time_seconds', 'Tempo di risposta del servizio API di IATA')

@@ -57,16 +57,14 @@ subscription_processing_time_metric = Gauge(
     'subscription_processing_time_seconds', 'Tempo di elaborazione delle iscrizioni'
 )
 
-api_response_time = Gauge('api_response_time_seconds', 'Tempo di risposta dell\'API in secondi')
-
 memory_usage = Gauge(
-    'memory_usage_percent', 'Percentuale Memory usage')
+    'memory_usage_percent_subscription', 'Percentuale Memory usage')
 
 cpu_usage = Gauge(
-    'cpu_usage_percent', 'Percentuale CPU usage')
+    'cpu_usage_percent_subscription', 'Percentuale CPU usage')
 
 disk_space_usage = Gauge(
-    'disk_space_usage', 'Disk space usage in bytes')
+    'disk_space_usage_subscription', 'Disk space usage in bytes')
 
 scheduler = APScheduler()
 scheduler.init_app(app)
