@@ -147,8 +147,12 @@ services:
   api_service:
     build:
       context: api_service
+      args:
+       API_KEY: ${API_KEY}
       dockerfile: Dockerfile
     container_name: api_service
+    env_file:
+      - .env
     environment:
       MYSQL_DATABASE: 'api'  # Nuovo database per il servizio
       MYSQL_USER: 'an'
@@ -156,6 +160,7 @@ services:
       MYSQL_ROOT_PASSWORD: '12345'
       KAFKA_BOOTSTRAP_SERVERS: 'kafka:9092'  # Indirizzo del broker Kafka
       KAFKA_GROUP: 'group'
+      API_KEY: ${API_KEY}
     ports:
       - "5002:5002"
     networks:
@@ -184,8 +189,15 @@ services:
   notifier_service:
     build:
       context: notifier_service
+      args:
+        MAIL_USERNAME: ${MAIL_USERNAME}
+        MAIL_PASSWORD: ${MAIL_PASSWORD}
+        MAIL_DEFAULT_SENDER: ${MAIL_USERNAME}
+
       dockerfile: Dockerfile
     container_name: notifier_service
+    env_file:
+      - .env
     environment:
       MYSQL_DATABASE: 'bestflights'  # Nuovo database per il servizio meteo
       MYSQL_USER: 'an'
@@ -197,9 +209,9 @@ services:
       MAIL_PORT: 465
       MAIL_USE_TLS: False
       MAIL_USE_SSL: True
-      MAIL_USERNAME: 'angelo-cocuzza@libero.it'
-      MAIL_PASSWORD: 'Bestflights123!'
-      MAIL_DEFAULT_SENDER: 'angelo-cocuzza@libero.it'
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_DEFAULT_SENDER: ${MAIL_USERNAME}
     ports:
       - "5003:5003"
     networks:

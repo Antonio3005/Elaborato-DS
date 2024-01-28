@@ -11,13 +11,22 @@ import grpc
 import flight_pb2
 import flight_pb2_grpc
 from concurrent import futures
-import smtplib
+import smtplib,os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import psutil
 import shutil
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import Counter, Gauge, start_http_server
+from dotenv import load_dotenv
+
+# Carica le variabili di ambiente da .env nella directory principale
+dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+load_dotenv(dotenv_path)
+load_dotenv()
+# Recupera l'API key
+mail_username = os.environ['MAIL_USERNAME']
+mail_password = os.environ['MAIL_PASSWORD']
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -47,12 +56,14 @@ db = SQLAlchemy(app)
 # Configurazione di Kafka
 kafka_bootstrap_servers = 'kafka:9092'
 kafka_topic = 'flights'
-group_id = 'group'
+group_id = 'notifier_group'
 conf = {
     'bootstrap.servers': kafka_bootstrap_servers,
     'group.id': group_id,
     'auto.offset.reset': 'earliest',  # Puoi regolare questa impostazione in base alle tue esigenze
 }
+consumer = Consumer(**conf)
+consumer.subscribe([kafka_topic])
 
 
 
@@ -88,19 +99,19 @@ class BestFlights(db.Model):
 with app.app_context():
     db.create_all()
 
-class NotifierService(flight_pb2_grpc.FlightDataServiceServicer):
-    def SendFlightData(self, request, context):
+#class NotifierService(flight_pb2_grpc.FlightDataServiceServicer):
+    #def SendFlightData(self, request, context):
         # Parsa il campo json_data come oggetto JSON
-        logging.info("debuggo")
-        json_data = json.loads(request.json_data)
-        logging.info("Dati ricevuti da gRPC")
-        logging.info(f"{json_data}")
+        #logging.info("debuggo")
+        #json_data = json.loads(request.json_data)
+        #logging.info("Dati ricevuti da gRPC")
+        #logging.info(f"{json_data}")
         # Ora json_data è un dizionario Python
-        process_flight_data(json_data)
+        #process_flight_data(json_data)
         # Fai qualcosa con i dati JSON
 
         # Restituisci una risposta se necessario
-        return flight_pb2.NotifyFlightDataSuccess(message="Dati ricevuti con successo")
+        #return flight_pb2.NotifyFlightDataSuccess(message="Dati ricevuti con successo")
 
 def save_to_database(flight_data):
     with app.app_context():
@@ -134,12 +145,12 @@ def send_notification_email(to_email, subject, body):
         # Configurare i dettagli del server SMTP
         smtp_server = 'smtp.libero.it'
         smtp_port = 465
-        smtp_username = 'angelo-cocuzza@libero.it'
-        smtp_password = 'Bestflights123!'
+        smtp_username = mail_username
+        smtp_password = mail_password
 
         # Creare un oggetto del messaggio
         msg = MIMEMultipart()
-        msg['From'] = 'angelo-cocuzza@libero.it'
+        msg['From'] = mail_username
         msg['To'] = to_email
         msg['Subject'] = subject
 
@@ -244,14 +255,44 @@ def process_flight_data(flight_data):
         return f'Errore durante l\'elaborazione dei dati di volo: {e}'
 
 
-def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    flight_pb2_grpc.add_FlightDataServiceServicer_to_server(NotifierService(), server)
-    server.add_insecure_port('[::]:5003')
-    logging.info("Avvio del server gRPC su porta 5003...")
-    server.start()
-    logging.info("Il server gRPC è in esecuzione.")
-    server.wait_for_termination()
+#def serve():
+    #server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    #flight_pb2_grpc.add_FlightDataServiceServicer_to_server(NotifierService(), server)
+    #server.add_insecure_port('[::]:5003')
+    #logging.info("Avvio del server gRPC su porta 5003...")
+    #server.start()
+    #logging.info("Il server gRPC è in esecuzione.")
+    #server.wait_for_termination()
+
+def consume_messages(c):
+    try:
+        while True:
+            # Consuma i messaggi
+            #i messaggi ricevuti vengono letti lentamente, una soluzione potrebbe essere ridurre il poll?
+            msg = c.poll(0.1)
+            logging.error(f"{msg}")
+            if msg is None:
+                logging.debug("non ci sono messaggi da leggere")
+                break
+            if msg.error():
+                if msg.error().code() == KafkaError._PARTITION_EOF:
+                    continue
+                else:
+                    print(msg.error())
+                    break
+
+            # Elabora il messaggio
+            sub_data = msg.value()
+            sub_data_string = sub_data.decode('utf-8')
+            data = json.loads(sub_data_string)
+            logging.error(f"{data}")
+            process_flight_data(data)
+
+    except Exception as e:
+        print(f"Errore durante la lettura dei messaggi: {e}")
+    #finally:
+    # Chiudi il consumatore alla fine
+    #    c.close()
 
 def measure_metrics():
     logging.error("AUTH_METRICS")
@@ -266,15 +307,17 @@ def measure_metrics():
     disk_space_usage.set(disk_space.used)
 
 def schedule_jobs():
-
-    #implementare consumer kafka
-    measure_metrics()
+    while(True):
+        consume_messages(consumer)
+        #implementare consumer kafka
+        measure_metrics()
     # Aggiungi un ritardo prima di ripetere il ciclo
-    time.sleep(45)
+        time.sleep(45)
+
 
 if __name__ == '__main__':
     #app.run(debug=True, host='0.0.0.0', port=5003)
     #dato che implementeremo kafka andremo da sostituire server con shedule_jobs
-    #schedule_jobs()
+    schedule_jobs()
     start_http_server(5000)
-    serve()
+    #serve()

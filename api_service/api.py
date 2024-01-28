@@ -9,12 +9,21 @@ import time
 import grpc
 import flight_pb2
 import flight_pb2_grpc
-import time
+import time,os
 import logging
 import psutil
 import shutil
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import Counter, Gauge, start_http_server
+from dotenv import load_dotenv
+
+# Carica le variabili di ambiente da .env nella directory principale
+#dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+#load_dotenv(dotenv_path)
+load_dotenv()
+# Recupera l'API key
+api_key = os.environ['API_KEY']
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -37,16 +46,22 @@ flights_response_time = Gauge(
     'flights_response_time_seconds', 'Tempo di risposta del servizio API di flights')
 
 kafka_bootstrap_servers = 'kafka:9092'
-#kafka_topic1 = 'flights'
+kafka_topic1 = 'flights'
 kafka_topic2 = 'users'
-group_id = 'group'
-conf = {
+group_id = 'api_group'
+client_id = 'api_producer'
+api_consumer_conf = {
     'bootstrap.servers': kafka_bootstrap_servers,
     'group.id': group_id,
     'auto.offset.reset': 'earliest',  # Puoi regolare questa impostazione in base alle tue esigenze
+
 }
-#producer = Producer(**conf)
-consumer = Consumer(**conf)
+api_producer_conf = {
+    'bootstrap.servers': kafka_bootstrap_servers,
+    'client.id': client_id
+}
+producer = Producer(**api_producer_conf)
+consumer = Consumer(**api_consumer_conf)
 consumer.subscribe([kafka_topic2])
 
 
@@ -91,21 +106,21 @@ with app.app_context():
     logging.debug("cartelle create con successo")
 
 
-def send_flight_data(data):
+#def send_flight_data(data):
     #logging.debug(f"sono qui dentro senf_flight;{data}")
-    channel = grpc.insecure_channel('notifier_service:5003')
-    stub = flight_pb2_grpc.FlightDataServiceStub(channel)
+    #channel = grpc.insecure_channel('notifier_service:5003')
+    #stub = flight_pb2_grpc.FlightDataServiceStub(channel)
 
 
     # Crea un oggetto FlightDataRequest con i dati appropriati
-    request = flight_pb2.FlightDataRequest(
-        json_data=data
-    )
+    #request = flight_pb2.FlightDataRequest(
+        #json_data=data
+    #)
     #logging.debug(f"jason_data{request}")
 
     # Chiamata remota al servizio SendFlightData
-    response = stub.SendFlightData(request)
-    logging.debug(f"Risposta dal server: {response.message}")
+    #response = stub.SendFlightData(request)
+    #logging.debug(f"Risposta dal server: {response.message}")
 
 def get_iata(city):
 
@@ -114,7 +129,7 @@ def get_iata(city):
         url = 'https://api.tequila.kiwi.com/locations/query'
         headers = {
             'accept': 'application/json',
-            'apikey': 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
+            'apikey': api_key
         }
 
         params = {
@@ -166,7 +181,7 @@ def get_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, 
         url = 'https://api.tequila.kiwi.com/v2/search'
         headers = {
             'accept': 'application/json',
-            'apikey': 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
+            'apikey': api_key
         }
 
         params = {
@@ -235,10 +250,10 @@ def flights():
                     logging.debug(f"Valore di data: {d}")
                     serialized_data = json.dumps(d).encode('utf-8')
                     #chiamata funzione gRPC
-                    send_flight_data(serialized_data)
-                    #producer.produce(kafka_topic1, value=serialized_data)
+                    #send_flight_data(serialized_data)
+                    producer.produce(kafka_topic1, value=serialized_data)
 
-                #producer.flush()
+                producer.flush()
     except Exception as e:
         print(f"Errore durante l'esecuzione della funzione flights: {e}")
 
@@ -323,14 +338,17 @@ def schedule_jobs():
         #schedule.run_pending()
         #flights()
         # Esegui la funzione flights ogni giorno alle 18:58
-        current_time = time.localtime()
-        logging.debug(current_time)
-        if current_time.tm_hour == 8 and current_time.tm_min == 0:
-            logging.debug("DEGUGGO sono qui")
-            flights()
+
+
 
         # Esegui altre funzioni non pianificate
         consume_messages(consumer)
+
+        current_time = time.localtime()
+        logging.debug(current_time)
+        if current_time.tm_hour == 19 and current_time.tm_min ==36 :
+            logging.debug("DEGUGGO sono qui")
+            flights()
 
         measure_metrics()
         # Aggiungi un ritardo prima di ripetere il ciclo
