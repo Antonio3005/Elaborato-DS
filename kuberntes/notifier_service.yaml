@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifier-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: notifier-service
+  template:
+    metadata:
+      labels:
+        app: notifier-service
+    spec:
+      containers:
+        - name: notifier-service
+          image: elaborato-ds-notifier_service:latest
+          ports:
+            - containerPort: 5003
+          env:
+            - name: MYSQL_DATABASE
+              value: bestflights
+            - name: MYSQL_USER
+              value: an
+            - name: MYSQL_PASSWORD
+              value: '12345'
+            - name: MYSQL_ROOT_PASSWORD
+              value: '12345'
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: 'kafka:9092'
+            - name: KAFKA_GROUP_ID
+              value: group
+            - name: MAIL_SERVER
+              value: 'smtp.libero.it'
+            - name: MAIL_PORT
+              value: '465'
+            - name: MAIL_USE_TLS
+              value: 'False'
+            - name: MAIL_USE_SSL
+              value: 'True'
+            - name: MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: notifier-service-secrets
+                  key: .env
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: notifier-service-secrets
+                  key: .env
+            - name: MAIL_DEFAULT_SENDER
+              valueFrom:
+                secretKeyRef:
+                  name: notifier-service-secrets
+                  key: .env
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notifier-service
+spec:
+  selector:
+    app: notifier-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5003

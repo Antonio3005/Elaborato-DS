@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: elaborato-ds-auth_service:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: MYSQL_DATABASE
+              value: users
+            - name: MYSQL_USER
+              value: an
+            - name: MYSQL_PASSWORD
+              value: '12345'
+            - name: MYSQL_ROOT_PASSWORD
+              value: '12345'
+            - name: SECRET_KEY
+              value: chiavesegreta
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-service-secrets
+type: Opaque
+data:
+  .env: <BASE64_ENCODED_CONTENTS_OF_ENV_FILE>

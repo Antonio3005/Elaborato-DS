@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sla-manager
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sla-manager
+  template:
+    metadata:
+      labels:
+        app: sla-manager
+    spec:
+      containers:
+        - name: sla-manager
+          image: elaborato-ds-sla_manager:latest
+          ports:
+            - containerPort: 5005
+          env:
+            - name: MYSQL_DATABASE
+              value: users
+            - name: MYSQL_USER
+              value: an
+            - name: MYSQL_PASSWORD
+              value: '12345'
+            - name: MYSQL_ROOT_PASSWORD
+              value: '12345'
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sla-manager
+spec:
+  selector:
+    app: sla-manager
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5005
