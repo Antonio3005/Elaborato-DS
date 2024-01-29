@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\angel\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert
+    kompose.version: 1.31.2 (a92241f79)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mysql-bestflights
+  name: mysql_bestflights
+spec:
+  ports:
+    - name: "9094"
+      port: 9094
+      targetPort: 3306
+  selector:
+    io.kompose.service: mysql-bestflights
+status:
+  loadBalancer: {}
