@@ -13,10 +13,11 @@ spec:
 ---
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mysql-api
 spec:
+  serviceName: "mysql-api"
   replicas: 1
   selector:
     matchLabels:
@@ -43,7 +44,12 @@ spec:
           volumeMounts:
             - name: mysql-data-api
               mountPath: /var/lib/mysql
-      volumes:
-        - name: mysql-data-api
-          persistentVolumeClaim:
-            claimName: mysql-data-api
+  volumeClaimTemplates:
+    - metadata:
+        name: sladb-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
+
