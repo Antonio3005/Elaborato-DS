@@ -1,26 +1,42 @@
+import logging
+
+import pandas as pd
+import numpy as np
 import statsmodels.api as sm
 
-def forecast_statsmodels(metric_name, df, start_time, end_time):
-    # Creazione di un DataFrame compatibile con statsmodels
-    df = df.resample('S').mean()  # Campionamento dei dati per assicurarci che siano a intervalli regolari
-    df = df.fillna(df.mean())  # Gestione dei valori mancanti
+class Forecast:
+    @staticmethod
+    def forecast(metric_name, df, future_steps):
+        """
+        Prevede future violazioni di metriche utilizzando ARIMA.
 
-    # Creazione di un modello ARIMA
-    model = sm.tsa.ARIMA(df['Value'], order=(1, 1, 1))  # Esempio di modello ARIMA (p, d, q)
+        Parameters:
+            metric_name (str): Nome della metrica.
+            df (pd.DataFrame): DataFrame contenente la serie temporale della metrica.
+            future_steps (int): Numero di passi futuri da prevedere.
 
-    # Addestramento del modello
-    model_fit = model.fit(disp=0)
+        Returns:
+            dict: Dizionario contenente i risultati della previsione.
+        """
 
-    # Creazione di un DataFrame futuro per le previsioni nell'intervallo specificato
-    future_index = pd.date_range(start=start_time, end=end_time, freq='S')
-    future_data = pd.DataFrame(index=future_index, columns=['Value'])
+        # Preprocessing dei dati
+        df = df.resample('S').mean()  # Campionamento dei dati per assicurarsi che siano a intervalli regolari
+        df = df.fillna(df.mean())  # Gestione dei valori mancanti
 
-    # Previsione
-    forecast_values = model_fit.forecast(steps=len(future_index))
+        # Addestramento del modello ARIMA
+        model = sm.tsa.ARIMA(df['Value'], order=(1, 1, 1))  # Esempio di modello ARIMA (p, d, q)
+        result = model.fit()
 
-    # Restituzione delle previsioni
-    return {
-        'metric_name': metric_name,
-        'forecast_values': pd.DataFrame({'Time': future_index, 'Value': forecast_values}),
-        'confidence_interval': None  # statsmodels non restituisce direttamente l'intervallo di confidenza
-    }
+        # Previsione futura
+        forecast_values = result.get_forecast(steps=future_steps)
+
+        # Estrazione degli intervalli di confidenza
+        conf_int = forecast_values.conf_int()
+
+
+        # Restituzione dei risultati
+        return {
+            'metric_name': metric_name,
+            'forecast_values': forecast_values.predicted_mean.values,
+            'confidence_interval': conf_int.values
+        }

@@ -5,7 +5,7 @@ import schedule
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
-#import forecast
+from forecast import Forecast
 from datetime import datetime, timedelta
 
 
@@ -152,9 +152,14 @@ def get_violations():
 def get_probability():
     #try:
         # Durata in secondi della previsione nel futuro
+
+        seconds = 21600 #6 ore
+
         future_seconds = int(request.form['x_seconds'])
 
         metrics = Metrics.query.all()
+
+        logging.error(f"{metrics}")
 
         # Dizionario con nome metrica e probabilità di violazione
         probability_data = {}
@@ -167,25 +172,28 @@ def get_probability():
             query = metric_n
 
             response = requests.get(PROMETHEUS + '/api/v1/query_range',
-                                    params={'query': query, 'start': time.time(), 'end': time.time() + future_seconds,
+                                    params={'query': query, 'start': time.time()-seconds, 'end': time.time(),
                                             'step': '15s'})
 
             result = response.json()['data']['result'][0]['values']
 
             df = pd.DataFrame(result, columns=['Time', 'Value'])
             df['Time'] = pd.to_datetime(df['Time'], unit='s')
+            df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
             df = df.set_index('Time')
 
-            # Qui generare la previsione e l'intervallo
-            conf_int = forecast.forecast(metric_n, df).get_ConfInt()
-            low_int = conf_int["lower Value"]
-            up_int = conf_int["upper Value"]
+            logging.debug(f"dataframe: {df}")
 
-            # Qui vedere il massimo della probabilità
-            umax = up_int.max()
-            lmax = low_int.max()
-            umin = up_int.min()
-            lmin = low_int.min()
+            # Utilizzare la tua funzione di previsione
+            forecast_result = Forecast.forecast(metric_n, df, df.index[-1] + pd.Timedelta(seconds=future_seconds))
+            logging.debug(f"{forecast_result}")
+            # Calcolare la probabilità di violazione
+
+
+            """umax = conf_int['upper Value'].max()
+            lmax = conf_int['lower Value'].max()
+            umin = conf_int['upper Value'].min()
+            lmin = conf_int['lower Value'].min()
             distanzasup = umax - lmax
             distanzainf = umin - lmin
             psup = 0
@@ -198,14 +206,13 @@ def get_probability():
                 psup += (umin - max_v) / distanzainf
             if lmin < min_v:
                 psup += (min_v - lmin) / distanzainf
-
-            probability_data[metric_n] = min(max(psup, pinf), 1)
+    
+            probability_data[metric_n] = min(max(psup, pinf), 1)"""
 
         return jsonify({"success": True, "message": "Probabilità di violazione.", "probability": probability_data})
 
     #except Exception as e:
     #    return jsonify({"success": False, "message": "Si è verificato un errore durante l'elaborazione della richiesta."})
-
 
 
 if __name__ == '__main__':
