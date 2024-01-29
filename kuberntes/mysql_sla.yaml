@@ -31,6 +31,8 @@ spec:
         - name: mysql-sla
           image: mysql:latest
           env:
+            - name: MYSQL_SERV_NAME
+              value: "mysql-sla"
             - name: MYSQL_ROOT_PASSWORD
               value: "12345"
             - name: MYSQL_DATABASE

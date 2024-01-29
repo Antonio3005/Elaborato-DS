@@ -17,6 +17,7 @@ app = Flask(__name__)
 CORS(app)
 SECRET_KEY=os.environ['SECRET_KEY']
 
+
 kafka_bootstrap_servers = 'kafka:9092'
 kafka_topic = 'users'
 conf = {

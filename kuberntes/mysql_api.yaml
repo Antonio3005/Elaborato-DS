@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql-bestflights
+  name: mysql-api
 spec:
   selector:
-    app: mysql-bestflights
+    app: mysql-api
   ports:
     - protocol: TCP
       port: 3306
@@ -12,31 +12,32 @@ spec:
 
 ---
 
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mysql-bestflights
+  name: mysql-api
 spec:
-  serviceName: "mysql-bestflights"
+  serviceName: "mysql-api"
   replicas: 1
   selector:
     matchLabels:
-      app: mysql-bestflights
+      app: mysql-api
   template:
     metadata:
       labels:
-        app: mysql-bestflights
+        app: mysql-api
     spec:
       containers:
-        - name: mysql-bestflights
+        - name: mysql-api
           image: mysql:latest
           env:
             - name: MYSQL_SERV_NAME
-              value: "mysql-bestflights"
+              value: "mysql-api"
             - name: MYSQL_ROOT_PASSWORD
               value: "12345"
             - name: MYSQL_DATABASE
-              value: "bestflights"
+              value: "api"
             - name: MYSQL_USER
               value: "an"
             - name: MYSQL_PASSWORD
@@ -44,14 +45,13 @@ spec:
           ports:
             - containerPort: 3306
           volumeMounts:
-            - name: mysql-data-bestflights
+            - name: mysql-data-api
               mountPath: /var/lib/mysql
   volumeClaimTemplates:
     - metadata:
-        name: mysql-data-bestflights
+        name: mysql-data-api
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
             storage: 100Mi
-
