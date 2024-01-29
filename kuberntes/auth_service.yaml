@@ -20,6 +20,8 @@ spec:
           env:
             - name: API_KEY
               value: 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
+            - name: MYSQL_SERV_NAME
+              value: "mysql-users"
             - name: MYSQL_DATABASE
               value: users
             - name: MYSQL_USER

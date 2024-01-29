@@ -18,6 +18,8 @@ spec:
           ports:
             - containerPort: 5000
           env:
+            - name: MYSQL_SERV_NAME
+              value: "mysql-sla"
             - name: MYSQL_DATABASE
               value: users
             - name: MYSQL_USER

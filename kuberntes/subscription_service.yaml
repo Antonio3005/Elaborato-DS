@@ -18,6 +18,8 @@ spec:
           ports:
             - containerPort: 5000
           env:
+            - name: MYSQL_SERV_NAME
+              value: "mysql-subscription"
             - name: MYSQL_DATABASE
               value: subscription
             - name: MYSQL_USER

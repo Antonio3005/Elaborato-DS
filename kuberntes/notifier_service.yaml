@@ -18,6 +18,8 @@ spec:
           ports:
             - containerPort: 5000
           env:
+            - name: MYSQL_SERV_NAME
+              value: "mysql-bestflights"
             - name: MYSQL_DATABASE
               value: bestflights
             - name: MYSQL_USER
