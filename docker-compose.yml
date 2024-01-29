@@ -84,7 +84,7 @@ services:
       dockerfile: Dockerfile
     container_name: subscription_service
     environment:
-      MYSQL_SERV_NAME: 'subscription_service'
+      MYSQL_SERV_NAME: 'mysql_subscription'
       MYSQL_DATABASE: 'subscription'  # Nuovo database per il servizio meteo
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
@@ -248,7 +248,7 @@ services:
       dockerfile: Dockerfile
     environment:
       MYSQL_SERV_NAME: 'mysql_sla'
-      MYSQL_DATABASE: 'users'
+      MYSQL_DATABASE: 'sla'
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
