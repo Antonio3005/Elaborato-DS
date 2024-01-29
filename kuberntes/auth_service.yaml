@@ -18,6 +18,8 @@ spec:
           ports:
             - containerPort: 5000
           env:
+            - name: API_KEY
+              value: 'qLsLVL8oCHp3riP0lbb3PTcz0TNc3r-Y'
             - name: MYSQL_DATABASE
               value: users
             - name: MYSQL_USER

@@ -38,7 +38,7 @@ mail = Mail(app)
 db_user = os.environ.get('MYSQL_USER')
 db_password = os.environ.get('MYSQL_PASSWORD')
 db_name = os.environ.get('MYSQL_DATABASE')
-db_serv_name = os.environ.get('DB_SERV_NAME')
+db_serv_name = os.environ.get('MYSQL_SERV_NAME')
 
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{db_user}:{db_password}@{db_serv_name}/{db_name}'
