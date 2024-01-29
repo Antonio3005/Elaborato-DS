@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notifier-service
+  name: notifier-deploy
 spec:
   replicas: 3
   selector:
@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
         - name: notifier-service
-          image: elaborato-ds-notifier_service:latest
+          image: antonio3005/elaborato-ds-notifier_service:latest
           ports:
-            - containerPort: 5003
+            - containerPort: 5000
           env:
             - name: MYSQL_DATABASE
               value: bestflights
@@ -53,7 +53,7 @@ spec:
                 secretKeyRef:
                   name: notifier-service-secrets
                   key: .env
-
+          command: ["python", "-u", "notifier.py"]
 ---
 apiVersion: v1
 kind: Service
@@ -64,5 +64,5 @@ spec:
     app: notifier-service
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 5003
+      port: 5000
+      targetPort: 5000

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: subscription-service
+  name: subscription-deploy
 spec:
   replicas: 3
   selector:
@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
         - name: subscription-service
-          image: elaborato-ds-subscription_service:latest
+          image: antonio3005/elaborato-ds-subscription_service:latest
           ports:
-            - containerPort: 5001
+            - containerPort: 5000
           env:
             - name: MYSQL_DATABASE
               value: subscription
@@ -30,7 +30,7 @@ spec:
               value: chiavesegreta
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: 'kafka:9092'
-
+          command: ["flask", "--app", "subscription", "run", "--host=0.0.0.0"]
 ---
 apiVersion: v1
 kind: Service
@@ -41,5 +41,5 @@ spec:
     app: subscription-service
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 5001
+      port: 5000
+      targetPort: 5000

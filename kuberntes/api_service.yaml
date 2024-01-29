@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-service
+  name: api-deploy
 spec:
   replicas: 3
   selector:
@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
         - name: api-service
-          image: elaborato-ds-api_service:latest
+          image: antonio3005/elaborato-ds-api_service:latest
           ports:
-            - containerPort: 5002
+            - containerPort: 5000
           env:
             - name: MYSQL_DATABASE
               value: api
@@ -30,7 +30,7 @@ spec:
               value: 'kafka:9092'
             - name: KAFKA_GROUP
               value: group
-
+          command: ["python", "-u", "micro_tagger.py"]
 ---
 apiVersion: v1
 kind: Service
@@ -41,8 +41,8 @@ spec:
     app: api-service
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 5002
+      port: 5000
+      targetPort: 5000
 
 ---
 apiVersion: v1
