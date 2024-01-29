@@ -47,7 +47,7 @@ spec:
               mountPath: /var/lib/mysql
   volumeClaimTemplates:
     - metadata:
-        name: sladb-data
+        name: mysql-data-api
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
