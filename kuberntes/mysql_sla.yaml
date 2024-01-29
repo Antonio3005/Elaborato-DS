@@ -13,10 +13,11 @@ spec:
 ---
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mysql-sla
 spec:
+  serviceName: "mysql-sla"
   replicas: 1
   selector:
     matchLabels:
@@ -43,8 +44,12 @@ spec:
           volumeMounts:
             - name: mysql-data-sla
               mountPath: /var/lib/mysql
-      volumes:
-        - name: mysql-data-sla
-          persistentVolumeClaim:
-            claimName: mysql-data-sla
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-data-sla
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
 

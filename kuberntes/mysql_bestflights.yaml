@@ -13,10 +13,11 @@ spec:
 ---
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mysql-bestflights
 spec:
+  serviceName: "mysql-bestflights"
   replicas: 1
   selector:
     matchLabels:
@@ -43,7 +44,12 @@ spec:
           volumeMounts:
             - name: mysql-data-bestflights
               mountPath: /var/lib/mysql
-      volumes:
-        - name: mysql-data-bestflights
-          persistentVolumeClaim:
-            claimName: mysql-data-bestflights
+  volumeClaimTemplates:
+    - metadata:
+        name: userdb-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
+

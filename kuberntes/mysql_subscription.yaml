@@ -13,10 +13,11 @@ spec:
 ---
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mysql-subscription
 spec:
+  serviceName: "mysql-subscription"
   replicas: 1
   selector:
     matchLabels:
@@ -43,7 +44,12 @@ spec:
           volumeMounts:
             - name: mysql-data-subscription
               mountPath: /var/lib/mysql
-      volumes:
-        - name: mysql-data-subscription
-          persistentVolumeClaim:
-            claimName: mysql-data-subscription
+  volumeClaimTemplates:
+    - metadata:
+        name: userdb-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
+
