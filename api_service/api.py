@@ -15,19 +15,8 @@ import psutil
 import shutil
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import Counter, Gauge, start_http_server
-from dotenv import load_dotenv
 
-# Carica le variabili di ambiente da .env nella directory principale
-#dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
-#load_dotenv(dotenv_path)
-load_dotenv()
 # Recupera l'API key
-api_key = os.environ['API_KEY']
-
-
-logging.basicConfig(level=logging.DEBUG)
-
-
 app = Flask(__name__)
 
 memory_usage = Gauge(
@@ -64,7 +53,7 @@ producer = Producer(**api_producer_conf)
 consumer = Consumer(**api_consumer_conf)
 consumer.subscribe([kafka_topic2])
 
-
+api_key = os.environ['API_KEY']
 db_user = os.environ.get('MYSQL_USER')
 db_password = os.environ.get('MYSQL_PASSWORD')
 db_name = os.environ.get('MYSQL_DATABASE')
@@ -79,18 +68,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #scheduler.start()
 
 db = SQLAlchemy(app)
-
-#class UserPreferences(db.Model):
-#    id = db.Column(db.Integer, primary_key=True)
-#    user_id = db.Column(db.String(255), nullable=False)
-#    city_from = db.Column(db.String(255), nullable=False)
-#    city_to = db.Column(db.String(255), nullable=False)
-#    date_from = db.Column(db.String(255), nullable=False)
-#    date_to = db.Column(db.String(255), nullable=False)
-#    return_from = db.Column(db.String(255), nullable=False)
-#    return_to = db.Column(db.String(255), nullable=False)
-#    price_from = db.Column(db.String(255), nullable=False)
-#    price_to = db.Column(db.String(255), nullable=False)
 
 class SubPreferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -110,21 +87,6 @@ with app.app_context():
     logging.debug("cartelle create con successo")
 
 
-#def send_flight_data(data):
-    #logging.debug(f"sono qui dentro senf_flight;{data}")
-    #channel = grpc.insecure_channel('notifier_service:5003')
-    #stub = flight_pb2_grpc.FlightDataServiceStub(channel)
-
-
-    # Crea un oggetto FlightDataRequest con i dati appropriati
-    #request = flight_pb2.FlightDataRequest(
-        #json_data=data
-    #)
-    #logging.debug(f"jason_data{request}")
-
-    # Chiamata remota al servizio SendFlightData
-    #response = stub.SendFlightData(request)
-    #logging.debug(f"Risposta dal server: {response.message}")
 
 def get_iata(city):
 
@@ -362,10 +324,5 @@ def schedule_jobs():
 
 
 if __name__ == '__main__':
-    #app.run(debug=True, host='0.0.0.0', port=5002)
-    #app.run()
-    #while True:
-    #    schedule.run_pending()
-    #    time.sleep(1)
     start_http_server(5000)
     schedule_jobs()
