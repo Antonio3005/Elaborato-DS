@@ -60,23 +60,25 @@ spec:
     spec:
       containers:
         - name: prometheus
-          image: prom/prometheus:latest
+          image: prom/prometheus
           ports:
             - containerPort: 9090
           volumeMounts:
             - name: prometheus-data
+              mountPath: /prometheus
+            - name: config-volume
               mountPath: /etc/prometheus
-              readOnly: true
       volumes:
-        - name: prometheus-data
+        - name: config-volume
           configMap:
             name: prometheus-config
+            defaultMode: 420
   volumeClaimTemplates:
-    - metadata:
-        name: prometheus-data
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 1Gi
+      - metadata:
+          name: prometheus-data
+        spec:
+          accessModes: [ "ReadWriteOnce" ]
+          resources:
+            requests:
+              storage: 1Gi
 

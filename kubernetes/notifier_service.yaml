@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: notifier-service
-          image: antonio3005/elaborato-ds-notifier_service:latest
+          image: angelo3100/elaborato-ds-notifier_service:latest
           ports:
             - containerPort: 5000
           env:
@@ -41,20 +41,15 @@ spec:
             - name: MAIL_USE_SSL
               value: 'True'
             - name: MAIL_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: notifier-service-secrets
-                  key: .env
+              value: 'angelo-cocuzza@libero.it'
+
+
             - name: MAIL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: notifier-service-secrets
-                  key: .env
+              value: 'Bestflights123!'
+
             - name: MAIL_DEFAULT_SENDER
-              valueFrom:
-                secretKeyRef:
-                  name: notifier-service-secrets
-                  key: .env
+              value: 'angelo-cocuzza@libero.it'
+
           command: ["python", "-u", "notifier.py"]
 ---
 apiVersion: v1

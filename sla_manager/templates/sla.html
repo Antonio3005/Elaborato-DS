@@ -57,7 +57,7 @@
     function MetricStatus() {
         const formData = new FormData(document.getElementById('SLAForm'));
 
-        fetch('http://localhost:80/sla/api/status', {
+        fetch('http://localhost:80/sla/api/status', {//se si vuole avviare con docker compose e apache mettere la porta 8081
             method: 'GET',
             //body: formData
         })

@@ -20,7 +20,7 @@ db_serv_name = os.environ.get('MYSQL_SERV_NAME')
 # Configurazione del database MySQL con SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{db_user}:{db_password}@{db_serv_name}/{db_name}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-PROMETHEUS = os.environ.get('PROMETHEUS')
+PROMETHEUS = os.environ.get("PROMETHEUS")
 
 db = SQLAlchemy(app)
 class Metrics(db.Model):

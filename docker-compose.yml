@@ -247,7 +247,7 @@ services:
       context: ./sla_manager
       dockerfile: Dockerfile
     environment:
-      PROMETHEUS: "http://elaborato-ds-prometheus-1:9090/"
+      PROMETHEUS : "http://elaborato-ds-prometheus-1:9090/"
       MYSQL_SERV_NAME: 'mysql_sla'
       MYSQL_DATABASE: 'sla'
       MYSQL_USER: 'an'

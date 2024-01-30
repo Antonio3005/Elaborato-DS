@@ -14,20 +14,22 @@ spec:
     spec:
       containers:
         - name: sla-manager
-          image: antonio3005/elaborato-ds-sla_manager:latest
+          image: angelo3100/elaborato-ds-sla_manager:latest
           ports:
             - containerPort: 5000
           env:
             - name: MYSQL_SERV_NAME
               value: "mysql-sla"
             - name: MYSQL_DATABASE
-              value: users
+              value: sla
             - name: MYSQL_USER
               value: an
             - name: MYSQL_PASSWORD
               value: '12345'
             - name: MYSQL_ROOT_PASSWORD
               value: '12345'
+            - name: PROMETHEUS
+              value : "http://prometheus-0:9090/"
           command: ["flask", "--app", "sla", "run", "--host=0.0.0.0"]
 ---
 apiVersion: v1

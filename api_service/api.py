@@ -350,9 +350,9 @@ def schedule_jobs():
 
         current_time = time.localtime()
         logging.debug(current_time)
-        if current_time.tm_hour == 19 and current_time.tm_min ==36 :
-            logging.debug("DEGUGGO sono qui")
-            flights()
+        #if current_time.tm_hour == 21 and current_time.tm_min ==36 :
+            #logging.debug("DEGUGGO sono qui")
+        flights()
 
         measure_metrics()
         # Aggiungi un ritardo prima di ripetere il ciclo

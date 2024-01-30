@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: subscription-service
-          image: antonio3005/elaborato-ds-subscription_service:latest
+          image: angelo3100/elaborato-ds-subscription_service:latest
           ports:
             - containerPort: 5000
           env:

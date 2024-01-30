@@ -3,7 +3,9 @@ kind: Ingress
 metadata:
   name: my-ingress
   annotations:
+    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
 
 spec:
   ingressClassName: "nginx"
@@ -15,7 +17,7 @@ spec:
             path: /auth(/|$)(.*)
             backend:
               service:
-                name: microuser-service #nome del microservizio auth
+                name: auth-service #nome del microservizio auth
                 port:
                   number: 5000
 
@@ -23,7 +25,7 @@ spec:
             path: /subscription(/|$)(.*)
             backend:
               service:
-                name: microphoto-service #nome del microservizio auth
+                name: subscription-service
                 port:
                   number: 5000
 
@@ -31,6 +33,6 @@ spec:
             path: /sla(/|$)(.*)
             backend:
               service:
-                name: microphoto-service #nome del microservizio auth
+                name: sla-manager
                 port:
                   number: 5000

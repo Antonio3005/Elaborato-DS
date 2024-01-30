@@ -51,7 +51,7 @@
         // Fai qualcosa con il valore ottenuto
         console.log("Token ricevuto:", token);
 
-        fetch('http://localhost:80/subscription/api/subscription/' + token, {
+        fetch('http://localhost:80/subscription/api/subscription/' + token, {//se si vuole avviare con docker compose e apache mettere la porta 8081
             method: 'POST',
             body: formData
         })

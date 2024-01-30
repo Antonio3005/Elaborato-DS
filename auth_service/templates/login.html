@@ -26,7 +26,7 @@
         formData.append("username", username);
         formData.append("password", password);
 
-        fetch('http://localhost:80/auth/api/login', {
+        fetch('http://localhost:80/auth/api/login', { //se si vuole avviare con docker compose e apache mettere la porta 8081
             method: 'POST',
             body: formData
         })
