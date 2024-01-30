@@ -18,7 +18,7 @@ services:
       dockerfile: Dockerfile
     container_name: gateway
     ports:
-      - "8081:8081"
+      - "80:80"
     depends_on:
       - auth_service
       - subscription_service
@@ -247,6 +247,7 @@ services:
       context: ./sla_manager
       dockerfile: Dockerfile
     environment:
+      PROMETHEUS: "http://elaborato-ds-prometheus-1:9090/"
       MYSQL_SERV_NAME: 'mysql_sla'
       MYSQL_DATABASE: 'sla'
       MYSQL_USER: 'an'

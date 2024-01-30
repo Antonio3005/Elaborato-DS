@@ -51,7 +51,7 @@
         // Fai qualcosa con il valore ottenuto
         console.log("Token ricevuto:", token);
 
-        fetch('http://localhost:8081/subscription/api/subscription/' + token, {
+        fetch('http://localhost:80/subscription/api/subscription/' + token, {
             method: 'POST',
             body: formData
         })

@@ -26,7 +26,7 @@
         formData.append("username", username);
         formData.append("password", password);
 
-        fetch('http://localhost:8081/auth/api/register', {
+        fetch('http://localhost:80/auth/api/register', {
             method: 'POST',
             body: formData
         })

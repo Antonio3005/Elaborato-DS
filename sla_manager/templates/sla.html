@@ -33,7 +33,7 @@
     function AddMetric() {
         const formData = new FormData(document.getElementById('SLAForm'));
 
-        fetch('http://localhost:8081/sla/api/add', {
+        fetch('http://localhost:80/sla/api/add', {
             method: 'POST',
             body: formData
         })
@@ -57,7 +57,7 @@
     function MetricStatus() {
         const formData = new FormData(document.getElementById('SLAForm'));
 
-        fetch('http://localhost:8081/sla/api/status', {
+        fetch('http://localhost:80/sla/api/status', {
             method: 'GET',
             //body: formData
         })
@@ -99,7 +99,7 @@
     function SingleMetricStatus() {
         const formData = new FormData(document.getElementById('SLAForm'));
 
-        fetch('http://localhost:8081/sla/api/singlestatus', {
+        fetch('http://localhost:80/sla/api/singlestatus', {
             method: 'POST',
             body: formData
         })
@@ -131,7 +131,7 @@
     function Violations() {
         const formData = new FormData(document.getElementById('SLAForm'));
 
-        fetch('http://localhost:8081/sla/api/violations', {
+        fetch('http://localhost:80/sla/api/violations', {
             method: 'GET',
             //body: formData
         })
@@ -164,7 +164,7 @@
     function Probability() {
         const formData = new FormData(document.getElementById('SLAForm'));
 
-        fetch('http://localhost:8081/sla/api/probability', {
+        fetch('http://localhost:80/sla/api/probability', {
             method: 'POST',
             body: formData
         })
