@@ -99,7 +99,7 @@
     function SingleMetricStatus() {
         const formData = new FormData(document.getElementById('SLAForm'));
 
-        fetch('http://localhost:80/sla/api/singlestatus', {
+        fetch('http://localhost:80/sla/api/singlestatus/', {
             method: 'POST',
             body: formData
         })
@@ -148,6 +148,7 @@
                     //    "</ul>";
                     //document.getElementById('SLAResult').innerHTML = listaHTML;
                     var violations = data.violations;
+                    console.log(violations)
                     alert(data.message)
                 }
                 else {
