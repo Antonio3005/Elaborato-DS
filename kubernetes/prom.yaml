@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+      - job_name: 'auth-service'
+        static_configs:
+          - targets: ['auth-service:5000']
+      - job_name: 'api-service'
+        static_configs:
+          - targets: ['api-service:5000']
+      - job_name: 'notifier-service'
+        static_configs:
+          - targets: ['notifier-service:5000']
+      - job_name: 'subscription-service'
+        static_configs:
+          - targets: ['subscription-service:5000']
+#      - job_name: 'node-exporter'
+#        static_configs:
+#          - targets: ['node-exporter:9100']
+#      - job_name: 'cadvisor'
+#        static_configs:
+#          - targets: ['cadvisor:8080']
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+spec:
+  serviceName: "prometheus"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus #serve a selezionare tutti i label che con chiave app e valore prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --web.console.libraries=/etc/prometheus/console_libraries
+            - --web.console.templates=/etc/prometheus/consoles
+          name: prometheus
+          image: prom/prometheus
+          ports:
+            - containerPort: 9090
+          volumeMounts: #percorsi nel container dove sono montati i volumi
+            - name: config-volume
+              mountPath: /etc/prometheus
+      volumes:
+        - name: config-volume
+          configMap: #configMap:: Specifica che il tipo di volume è un ConfigMap. In questo caso, il volume config-volume sarà popolato con i dati della ConfigMap specificata.
+            name: prometheus-config
+            defaultMode: 420 #permessi di lettura
+      #vol.sla.html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - protocol: TCP
+      port: 9090
+      targetPort: 9090
+
+  
