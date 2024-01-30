@@ -5,7 +5,7 @@ import schedule
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
-from forecast import Forecast
+import forecast
 from datetime import datetime, timedelta
 
 
@@ -40,7 +40,6 @@ def add():
             min_v = request.form['min_value']
             max_v = request.form['max_value']
 
-            #istance = Metrics.query.filter_by(metric_name=metric_n, job_name=job_n).first()
             new_metric=Metrics(metric_name=metric_n, min_value=min_v, max_value=max_v)
             db.session.add(new_metric)
             db.session.commit()
@@ -106,7 +105,7 @@ def get_singlestatus():
 @app.route("/api/violations", methods=['GET'])
 def get_violations():
     try:
-        # Definisci i periodi di tempo desiderati
+
         periods = [1, 3, 6]  # Periodi in ore
 
         violations_data = []
@@ -183,6 +182,8 @@ def get_probability():
 
             result = response.json()['data']['result'][0]['values']
 
+            logging.debug(f"{result}")
+
             df = pd.DataFrame(result, columns=['Time', 'Value'])
             df['Time'] = pd.to_datetime(df['Time'], unit='s')
             df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
@@ -191,7 +192,7 @@ def get_probability():
             logging.debug(f"dataframe: {df}")
 
             # Utilizzare la tua funzione di previsione
-            forecast_result = Forecast.forecast(metric_n, df, df.index[-1] + pd.Timedelta(seconds=future_seconds))
+            forecast_result = forecast.forecast(metric_n, df, df.index[-1] + pd.Timedelta(seconds=future_seconds))
             logging.debug(f"{forecast_result}")
             # Calcolare la probabilità di violazione
 

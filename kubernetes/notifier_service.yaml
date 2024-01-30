@@ -42,8 +42,6 @@ spec:
               value: 'True'
             - name: MAIL_USERNAME
               value: 'angelo-cocuzza@libero.it'
-
-
             - name: MAIL_PASSWORD
               value: 'Bestflights123!'
 

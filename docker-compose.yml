@@ -31,7 +31,7 @@ services:
     container_name: mysql_users
     environment:
       MYSQL_ROOT_PASSWORD: '12345'
-      MYSQL_DATABASE: 'users'  # Nome del database per il servizio auth
+      MYSQL_DATABASE: 'users'
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
     ports:
@@ -49,7 +49,7 @@ services:
     container_name: auth_service
     environment:
       MYSQL_SERV_NAME: 'mysql_users'
-      MYSQL_DATABASE: 'users'  # Utilizza lo stesso database 'auth' per il servizio auth
+      MYSQL_DATABASE: 'users'
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
@@ -67,7 +67,7 @@ services:
     container_name: mysql_subscription
     environment:
       MYSQL_ROOT_PASSWORD: '12345'
-      MYSQL_DATABASE: 'subscription'  # Nuovo database per il serviziometeo
+      MYSQL_DATABASE: 'subscription'
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
     ports:
@@ -85,7 +85,7 @@ services:
     container_name: subscription_service
     environment:
       MYSQL_SERV_NAME: 'mysql_subscription'
-      MYSQL_DATABASE: 'subscription'  # Nuovo database per il servizio meteo
+      MYSQL_DATABASE: 'subscription'
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
@@ -125,7 +125,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092 #all'interno della rete Docker tra i tuoi servizi, utilizzi l'indirizzo interno (kafka:9092). Quando comunichi da un host esterno al container, utilizzi l'indirizzo e la porta esposta (localhost:29092). Questo approccio consente di gestire le comunicazioni interne ed esterne senza modificare la configurazione.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -135,7 +135,7 @@ services:
     container_name: mysql_api
     environment:
       MYSQL_ROOT_PASSWORD: '12345'
-      MYSQL_DATABASE: 'api'  # Nome del database per il servizio auth
+      MYSQL_DATABASE: 'api'
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
     ports:
@@ -157,7 +157,7 @@ services:
       - .env
     environment:
       MYSQL_SERV_NAME: 'mysql_api'
-      MYSQL_DATABASE: 'api'  # Nuovo database per il servizio
+      MYSQL_DATABASE: 'api'
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
@@ -178,7 +178,7 @@ services:
     container_name: mysql_bestflights
     environment:
       MYSQL_ROOT_PASSWORD: '12345'
-      MYSQL_DATABASE: 'bestflights'  # Nuovo database per il servizio
+      MYSQL_DATABASE: 'bestflights'
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
     ports:
@@ -203,11 +203,11 @@ services:
       - .env
     environment:
       MYSQL_SERV_NAME: 'mysql_bestflights'
-      MYSQL_DATABASE: 'bestflights'  # Nuovo database per il servizio meteo
+      MYSQL_DATABASE: 'bestflights'
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
-      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"  # Indirizzo del broker Kafka
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
       KAFKA_GROUP_ID: "group"
       MAIL_SERVER: 'smtp.libero.it'
       MAIL_PORT: 465

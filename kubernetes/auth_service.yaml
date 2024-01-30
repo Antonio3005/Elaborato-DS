@@ -45,11 +45,3 @@ spec:
     - protocol: TCP
       port: 5000
       targetPort: 5000
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: auth-service-secrets
-type: Opaque
-data:
-  .env: TUFJTF9VU0VSTkFNRTonYW5nZWxvLWNvY3V6emFAbGliZXJvLml0Jw0KTUFJTF9QQVNTV09SRDonQmVzdGZsaWdodHMxMjMhJw0KQVBJX0tFWT0ncUxzTFZMOG9DSHAzcmlQMGxiYjNQVGN6MFROYzNyLVknDQo=

@@ -4,16 +4,10 @@ import requests
 import logging
 import json
 from confluent_kafka import Producer, Consumer, KafkaError
-import schedule
-import time
-import grpc
-import flight_pb2
-import flight_pb2_grpc
 import time,os
 import logging
 import psutil
 import shutil
-from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import Counter, Gauge, start_http_server
 
 # Recupera l'API key
@@ -63,10 +57,6 @@ db_serv_name = os.environ.get('MYSQL_SERV_NAME')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{db_user}:{db_password}@{db_serv_name}/{db_name}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-#scheduler = BackgroundScheduler()
-#scheduler.init_app(app)
-#scheduler.start()
-
 db = SQLAlchemy(app)
 
 class SubPreferences(db.Model):
@@ -84,9 +74,6 @@ class SubPreferences(db.Model):
 
 with app.app_context():
     db.create_all()
-    logging.debug("cartelle create con successo")
-
-
 
 def get_iata(city):
 
@@ -172,7 +159,6 @@ def get_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, 
 
         if response.status_code == 200:
             data = response.json()
-            # Iterate over the data and insert into the database
         else:
             print(f"Error: {response.status_code}, {response.text}")
 
@@ -190,20 +176,19 @@ def get_flights(iata_from, iata_to, date_from, date_to, return_from, return_to, 
 
 def flights():
     try:
-        #subscription = UserPreferences.query.all()
         with app.app_context():
             subscription = SubPreferences.query.all()
 
         for sub in subscription:
             iata_from = get_iata(sub.city_from)
             if iata_from is None:
-                continue  # Passa al prossimo record in caso di errore
+                continue
 
             logging.debug(f"Valore di iata_from: {iata_from}")
 
             iata_to = get_iata(sub.city_to)
             if iata_to is None:
-                continue  # Passa al prossimo record in caso di errore
+                continue
 
             logging.debug(f"Valore di iata_to: {iata_to}")
 
@@ -215,18 +200,15 @@ def flights():
                     d['user_id'] = sub.user_id
                     logging.debug(f"Valore di data: {d}")
                     serialized_data = json.dumps(d).encode('utf-8')
-                    #chiamata funzione gRPC
-                    #send_flight_data(serialized_data)
                     producer.produce(kafka_topic1, value=serialized_data)
 
                 producer.flush()
     except Exception as e:
-        print(f"Errore durante l'esecuzione della funzione flights: {e}")
+        logging.error(f"Errore durante l'esecuzione della funzione flights: {e}")
 
     return 'Eseguito con successo'
 
 def save_to_database(sub_data):
-    #logging.error(f"sono qui{sub_data['city_from']}")
     try:
         with app.app_context():
             sub_preferences = SubPreferences(user_id=sub_data["user_id"],
@@ -238,7 +220,6 @@ def save_to_database(sub_data):
                                                return_to=sub_data["return_to"],
                                                price_from=sub_data["price_from"],
                                                price_to=sub_data["price_to"])
-            #logging.debug(f"ciao 2 {sub_preferences.price_from}")
 
             try:
                 db.session.add(sub_preferences)
@@ -255,8 +236,6 @@ def save_to_database(sub_data):
 def consume_messages(c):
     try:
         while True:
-            # Consuma i messaggi
-            #i messaggi ricevuti vengono letti lentamente, una soluzione potrebbe essere ridurre il poll?
             msg = c.poll(0.1)
             if msg is None:
                 logging.debug("non ci sono messaggi da leggere")
@@ -277,9 +256,7 @@ def consume_messages(c):
 
     except Exception as e:
         print(f"Errore durante la lettura dei messaggi: {e}")
-    #finally:
-        # Chiudi il consumatore alla fine
-    #    c.close()
+
 
 
 def measure_metrics():
@@ -294,30 +271,17 @@ def measure_metrics():
     disk_space = shutil.disk_usage('/')
     disk_space_usage.set(disk_space.used)
 
-#scheduler.add_job(measure_metrics, 'interval', minutes=1)
-
-
-#schedule.every().day.at("18:58").do(flights)
-
 def schedule_jobs():
     while True:
-        #schedule.run_pending()
-        #flights()
-        # Esegui la funzione flights ogni giorno alle 18:58
 
-
-
-        # Esegui altre funzioni non pianificate
         consume_messages(consumer)
 
         current_time = time.localtime()
         logging.debug(current_time)
-        #if current_time.tm_hour == 21 and current_time.tm_min ==36 :
-            #logging.debug("DEGUGGO sono qui")
-        flights()
+        if current_time.tm_hour == 8 and current_time.tm_min == 0 :
+            flights()
 
         measure_metrics()
-        # Aggiungi un ritardo prima di ripetere il ciclo
         time.sleep(45)
     return "succes"
 

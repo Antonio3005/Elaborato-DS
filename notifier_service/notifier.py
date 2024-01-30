@@ -1,30 +1,18 @@
 from confluent_kafka import Consumer, KafkaError
 import json
-import schedule
 import time
-import requests
 import logging
 from flask import Flask, render_template, request, redirect, url_for, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
-import grpc
-import flight_pb2
-import flight_pb2_grpc
-from concurrent import futures
 import smtplib,os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import psutil
 import shutil
-from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import Counter, Gauge, start_http_server
-from dotenv import load_dotenv
 
-# Carica le variabili di ambiente da .env nella directory principale
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
-load_dotenv(dotenv_path)
-load_dotenv()
-# Recupera l'API key
+
 mail_username = os.environ['MAIL_USERNAME']
 mail_password = os.environ['MAIL_PASSWORD']
 
@@ -33,7 +21,6 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 mail = Mail(app)
 
-#modificare le funzioni del producer e del consumer
 
 db_user = os.environ.get('MYSQL_USER')
 db_password = os.environ.get('MYSQL_PASSWORD')
@@ -70,21 +57,6 @@ conf = {
 consumer = Consumer(**conf)
 consumer.subscribe([kafka_topic])
 
-
-
-# Configurazione Flask-Mail
-#per maggiore sicurezza utilizzare le variabili
-#di ambiente del docker-compose in questo modo:
-#my_variable = os.environ.get('MY_VARIABLE')
-#app.config['MAIL_SERVER'] = 'smtp.libero.it'
-#app.config['MAIL_PORT'] = 465
-#app.config['MAIL_USE_TLS'] = False
-#app.config['MAIL_USE_SSL'] = True
-#app.config['MAIL_USERNAME'] = 'angelo-cocuzza@libero.it'
-#app.config['MAIL_PASSWORD'] = 'Bestflights123!'
-#app.config['MAIL_DEFAULT_SENDER'] = 'angelo-cocuzza@libero.it'
-
-#mail.init_app(app)
 class BestFlights(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(255), nullable=False)
@@ -103,20 +75,6 @@ class BestFlights(db.Model):
 
 with app.app_context():
     db.create_all()
-
-#class NotifierService(flight_pb2_grpc.FlightDataServiceServicer):
-    #def SendFlightData(self, request, context):
-        # Parsa il campo json_data come oggetto JSON
-        #logging.info("debuggo")
-        #json_data = json.loads(request.json_data)
-        #logging.info("Dati ricevuti da gRPC")
-        #logging.info(f"{json_data}")
-        # Ora json_data è un dizionario Python
-        #process_flight_data(json_data)
-        # Fai qualcosa con i dati JSON
-
-        # Restituisci una risposta se necessario
-        #return flight_pb2.NotifyFlightDataSuccess(message="Dati ricevuti con successo")
 
 def save_to_database(flight_data):
     with app.app_context():
@@ -137,7 +95,6 @@ def save_to_database(flight_data):
                 price=flight_data['price']
             )
 
-            #logging.debug(f"ciao 2 {new_flight}")
             db.session.add(new_flight)
             db.session.commit()
             return 'Database aggiornato'
@@ -163,7 +120,7 @@ def send_notification_email(to_email, subject, body):
 
         # Aggiungere il corpo del messaggio
         #body_unicode = body.encode('utf-8').decode('utf-8')
-        body_with_crlf = body.replace('\n', '\r\n')
+        #body_with_crlf = body.replace('\n', '\r\n')
         msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
         # Inizializzare la connessione SMTP
@@ -225,12 +182,11 @@ def process_flight_data(flight_data):
                             f"Aeroporto di arrivo {flight_data['route'][1]['flyTo']}\n"
                             f"Citta di arrivo {flight_data['route'][1]['cityTo']}\n"
                             f"Data di ritorno {flight_data['route'][1]['local_departure']}\n"
-                            f"Prezzo {flight_data['price']}\n") #da modificare
+                            f"Prezzo {flight_data['price']}\n")
                 else:
                     logging.debug("Per oggi niente offerte")
                     logging.debug(f"Volo al prezzo di {max_price}")
-                    body = (f"Per oggi niente offerte") #da modificare
-                    #save_to_database(flight_data)
+                    body = (f"Per oggi niente offerte")
 
         else:
             save_to_database(flight_data)
@@ -247,13 +203,13 @@ def process_flight_data(flight_data):
                     f"Aeroporto di arrivo {flight_data['route'][1]['flyTo']}\n"
                     f"Citta di arrivo {flight_data['route'][1]['cityTo']}\n"
                     f"Data di ritorno {flight_data['route'][1]['local_departure']}\n"
-                    f"Prezzo {flight_data['price']}\n") #da modificare
+                    f"Prezzo {flight_data['price']}\n")
 
         # Esegui il commit delle modifiche al database
         with app.app_context():
             db.session.commit()
 
-        to_email = flight_data['user_id']  # Specifica l'indirizzo email del destinatario non funziona quando si prende con le parentesi quadre dal json stesso problema nel database vedere come risolverlo
+        to_email = flight_data['user_id']
         subject = 'Nuove offerte di volo disponibili!'
         send_notification_email(to_email, subject, body)
     except Exception as e:
@@ -272,8 +228,6 @@ def process_flight_data(flight_data):
 def consume_messages(c):
     try:
         while True:
-            # Consuma i messaggi
-            #i messaggi ricevuti vengono letti lentamente, una soluzione potrebbe essere ridurre il poll?
             msg = c.poll(0.1)
             logging.error(f"{msg}")
             if msg is None:
@@ -295,9 +249,6 @@ def consume_messages(c):
 
     except Exception as e:
         print(f"Errore durante la lettura dei messaggi: {e}")
-    #finally:
-    # Chiudi il consumatore alla fine
-    #    c.close()
 
 def measure_metrics():
     logging.error("AUTH_METRICS")
@@ -314,9 +265,7 @@ def measure_metrics():
 def schedule_jobs():
     while(True):
         consume_messages(consumer)
-        #implementare consumer kafka
         measure_metrics()
-    # Aggiungi un ritardo prima di ripetere il ciclo
         time.sleep(45)
 
 

@@ -1,4 +1,3 @@
-#from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -86,17 +85,14 @@ def api_login():
 
             logging.debug(f"Data: {username},{password}")
             login_attemps_metric.inc()
-            #metrics.counter('login_attempts_total', 'Numero totale di tentativi di login').inc()
             user = User.query.filter_by(username=username, password=password).first()
 
             if user:
                 logged_users_metric.inc()
-                #metrics.counter('successful_logins_total', 'Numero totale di login riusciti').inc()
                 token=createToken(username)
                 return jsonify({"success": True, "message": "Login riuscito", "token": token})
             else:
                 login_failed_metrics.inc()
-                #metrics.counter('failed_logins_total', 'Numero totale di login falliti').inc()
                 return jsonify({"success": False, "message": "Credenziali non valide. Riprova."})
     except Exception as e:
         logging.error(f"Errore durante il login: {e}")
@@ -117,7 +113,6 @@ def api_register():
 
             if existing_user:
                 registration_attempts_email_exists.inc()
-                #metrics.counter('registration_attempts_email_exists_total', 'Numero totale di tentativi di registrazione con email già presente').inc()
                 return jsonify({"success": False, "message": "Questo username è già stato utilizzato. Scegli un altro."})
 
             new_user = User(username=username, password=password)
@@ -125,7 +120,6 @@ def api_register():
             db.session.commit()
 
             registered_users_metric.inc()
-            #metrics.counter('successful_registrations_total', 'Numero totale di registrazioni riuscite').inc()
             token=createToken(username)
             return jsonify({"success": True, "message": "Registrazione riuscita", "token": token})
     except Exception as e:

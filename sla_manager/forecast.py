@@ -4,8 +4,7 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 
-class Forecast:
-    @staticmethod
+class forecast:
     def forecast(metric_name, df, future_steps):
         """
         Prevede future violazioni di metriche utilizzando ARIMA.
@@ -20,7 +19,7 @@ class Forecast:
         """
 
         # Preprocessing dei dati
-        df = df.resample('S').mean()  # Campionamento dei dati per assicurarsi che siano a intervalli regolari
+        df = df.resample('s').mean()  # Campionamento dei dati per assicurarsi che siano a intervalli regolari
         df = df.fillna(df.mean())  # Gestione dei valori mancanti
 
         # Addestramento del modello ARIMA

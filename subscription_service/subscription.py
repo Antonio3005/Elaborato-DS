@@ -13,10 +13,8 @@ from prometheus_client import Counter, Gauge
 from flask_apscheduler import APScheduler
 
 app = Flask(__name__)
-#app.template_folder = 'templates'
 CORS(app)
 SECRET_KEY=os.environ['SECRET_KEY']
-
 
 kafka_bootstrap_servers = 'kafka:9092'
 kafka_topic = 'users'
@@ -75,12 +73,6 @@ disk_space_usage = Gauge(
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
-
-
-#@app.route('/logout', methods=['POST'])
-#def logout():
-    # Redirect to the login page or any other desired page
-    #return redirect('http://0.0.0.0:5000/')
 
 def is_valid_date(date_str):
     try:
@@ -171,13 +163,10 @@ def subscription(token):
                     except ValueError as ve:
                         failed_subscription_metric.inc()
                         end_time = time.time()  # Registra il tempo di fine
-                        # Calcola il tempo di elaborazione
                         processing_time = end_time - start_time
-                        # Imposta la metrica Gauge con il tempo di elaborazione
                         subscription_processing_time_metric.set(processing_time)
                         return f"Errore durante la registrazione: {ve}"
 
-                    # Salva i valori nel database
                     user_preferences = UserPreferences(user_id=decoded_token["username"], city_from=city_from,city_to=city_to, date_from=date_from, date_to=date_to,
                                                        return_from=return_from,
                                                        return_to=return_to,
@@ -191,10 +180,8 @@ def subscription(token):
                     # Invia i valori a Kafka
                     send_to_kafka(user_preferences)
                     successful_subscription_metric.inc()
-                    end_time = time.time()  # Registra il tempo di fine
-                    # Calcola il tempo di elaborazione
+                    end_time = time.time()
                     processing_time = end_time - start_time
-                    # Imposta la metrica Gauge con il tempo di elaborazione
                     subscription_processing_time_metric.set(processing_time)
 
                     return jsonify({"success": True, "message": "Subscription riuscita"})
@@ -207,9 +194,6 @@ def subscription(token):
         except:
             return jsonify({"success": False, "message": "Token non presente, rieffettua il login"})
 
-            #return make_response("", 401) #Unauthorized
-
-    #return render_template('subscription.html', username=username)  # , preferences=preferences)
 def measure_metrics():
     logging.error("CITY_METRICS")
 
@@ -225,5 +209,4 @@ def measure_metrics():
 scheduler.add_job(id='metrics_job', func=measure_metrics, trigger='interval', minutes=1)
 
 if __name__ == '__main__':
-    #app.run(debug=True, host='0.0.0.0', port=5001)
     app.run()
