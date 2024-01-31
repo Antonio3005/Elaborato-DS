@@ -9,7 +9,7 @@ def train_and_predict_arima(dataframe, steps):
 
     # Predizione della probabilità futura
     forecast = results.get_forecast(steps=steps)
-    conf_int=forecast.conf_int().iloc[-1]
+    conf_int=forecast.conf_int() #.iloc[-1]
     logging.error(f"{conf_int}")
     forecast_mean = forecast.predicted_mean.iloc[-1]
 

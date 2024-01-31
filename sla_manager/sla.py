@@ -205,18 +205,18 @@ def get_probability():
             lmax = conf_int['lower Value'].max()
             umin = conf_int['upper Value'].min()
             lmin = conf_int['lower Value'].min()
-            distanzasup = umax - lmax
-            distanzainf = umin - lmin
+            dsup = umax - lmax
+            dinf = umin - lmin
             psup = 0
             if umax > max_v:
-                psup += (umax - max_v) / distanzasup
+                psup += (umax - max_v) / dsup
             if lmax < min_v:
-                psup += (min_v - lmax) / distanzasup
+                psup += (min_v - lmax) / dsup
             pinf = 0
             if umin > max_v:
-                psup += (umin - max_v) / distanzainf
+                psup += (umin - max_v) / dinf
             if lmin < min_v:
-                psup += (min_v - lmin) / distanzainf
+                psup += (min_v - lmin) / dinf
     
             probability_data[metric_n] = min(max(psup, pinf), 1)
 
