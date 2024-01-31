@@ -44,10 +44,8 @@ spec:
               value: 'angelo-cocuzza@libero.it'
             - name: MAIL_PASSWORD
               value: 'Bestflights123!'
-
             - name: MAIL_DEFAULT_SENDER
               value: 'angelo-cocuzza@libero.it'
-
           command: ["python", "-u", "notifier.py"]
 ---
 apiVersion: v1
