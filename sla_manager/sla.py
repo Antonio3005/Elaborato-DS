@@ -85,7 +85,7 @@ def get_status():
         return jsonify({"success": False, "message": "Si è verificato un errore durante l'elaborazione della richiesta."})
 
 
-@app.route("/api/singlestatus/", methods=['POST'])
+@app.route("/api/singlestatus", methods=['POST'])
 def get_singlestatus():
     try:
         if request.method == 'POST':
