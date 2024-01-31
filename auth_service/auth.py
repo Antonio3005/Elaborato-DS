@@ -120,6 +120,7 @@ def api_register():
             db.session.commit()
 
             registered_users_metric.inc()
+            #creazione token
             token=createToken(username)
             return jsonify({"success": True, "message": "Registrazione riuscita", "token": token})
     except Exception as e:

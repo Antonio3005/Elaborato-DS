@@ -116,7 +116,7 @@ def validate_preferences(city_from, city_to, date_from, date_to, return_from, re
 
 def send_to_kafka(user_preferences):
     try:
-        # Converti l'oggetto user_preferences in un dizionario
+        # Convertiamo l'oggetto user_preferences in un dizionario
         preferences_dict = {
             "user_id": user_preferences.user_id,
             "city_from": user_preferences.city_from,
@@ -143,7 +143,7 @@ def send_to_kafka(user_preferences):
 @app.route('/api/subscription/<token>', methods=['POST'])
 def subscription(token):
     if request.method == 'POST':
-        start_time = time.time()  # Registra il tempo di inizio
+        start_time = time.time()  # Registrazione del tempo di inizio
         try:
             decoded_token = jwt.decode(token, key=SECRET_KEY, algorithms=['HS256'])
             logging.error(f"{decoded_token['username']}")
@@ -195,7 +195,7 @@ def subscription(token):
             return jsonify({"success": False, "message": "Token non presente, rieffettua il login"})
 
 def measure_metrics():
-    logging.error("CITY_METRICS")
+    logging.error("SUBSCRIPTION_METRICS")
 
     memory_percent = psutil.virtual_memory().percent
     memory_usage.set(memory_percent)

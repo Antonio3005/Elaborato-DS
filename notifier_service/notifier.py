@@ -119,8 +119,6 @@ def send_notification_email(to_email, subject, body):
         logging.debug(f"IL BODY È : {body}")
 
         # Aggiungere il corpo del messaggio
-        #body_unicode = body.encode('utf-8').decode('utf-8')
-        #body_with_crlf = body.replace('\n', '\r\n')
         msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
         # Inizializzare la connessione SMTP
@@ -251,7 +249,7 @@ def consume_messages(c):
         print(f"Errore durante la lettura dei messaggi: {e}")
 
 def measure_metrics():
-    logging.error("AUTH_METRICS")
+    logging.error("NOTIFIER_METRICS")
 
     memory_percent = psutil.virtual_memory().percent
     memory_usage.set(memory_percent)

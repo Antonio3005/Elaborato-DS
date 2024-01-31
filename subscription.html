@@ -51,20 +51,17 @@
         // Fai qualcosa con il valore ottenuto
         console.log("Token ricevuto:", token);
 
-        fetch('http://localhost:80/subscription/api/subscription/' + token, {//se si vuole avviare con docker compose e apache mettere la porta 8081
+        fetch('http://localhost:80/subscription/api/subscription/' + token, {
             method: 'POST',
             body: formData
         })
             .then(response => response.json())
             .then(data => {
-                // Gestisci la risposta qui
                 console.log(data);
 
                 if (data.success) {
-                    // Esegui azioni di successo
                     alert(data.message);
                 } else {
-                    // Esegui azioni in caso di errore
                     alert(data.message);
                 }
             })

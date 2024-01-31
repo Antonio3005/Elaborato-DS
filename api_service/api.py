@@ -260,7 +260,7 @@ def consume_messages(c):
 
 
 def measure_metrics():
-    logging.error("AUTH_METRICS")
+    logging.error("API_METRICS")
 
     memory_percent = psutil.virtual_memory().percent
     memory_usage.set(memory_percent)

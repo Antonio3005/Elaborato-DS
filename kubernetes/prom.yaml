@@ -19,12 +19,6 @@ data:
       - job_name: 'subscription-service'
         static_configs:
           - targets: ['subscription-service:5000']
-#      - job_name: 'node-exporter'
-#        static_configs:
-#          - targets: ['node-exporter:9100']
-#      - job_name: 'cadvisor'
-#        static_configs:
-#          - targets: ['cadvisor:8080']
 ---
 
 apiVersion: apps/v1

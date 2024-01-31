@@ -16,15 +16,14 @@
     <label for="max_value">Max Value:</label>
     <input type="text" id="max_value" name="max_value" required>
 
-    <label for="x_seconds">X Seconds:</label>
-    <input type="text" id="x_seconds" name="x_seconds" required>
+    <label for="x_minutes">X Minutes:</label>
+    <input type="text" id="x_minutes" name="x_minutes" required>
 
     <button type="button" onclick="AddMetric()">Add metric</button>
     <button type="button" onclick="MetricStatus()">Metrics Status</button>
     <button type="button" onclick="SingleMetricStatus()">Single Metric Status</button>
     <button type="button" onclick="Violations()">Violations</button>
     <button type="button" onclick="Probability()">Probability of violations</button>
-    <!-- <button type="button" onclick="FindMetric()">Violation probability</button>-->
 </form>
 
 <div id="SLAResult"></div>
@@ -41,10 +40,8 @@
             .then(data => {
 
                 if (data.success) {
-                    // Esegui azioni di success
                     alert(data.message);
                 } else {
-                    // Esegui azioni in caso di errore
                     alert(data.message);
                 }
             })
@@ -57,36 +54,22 @@
     function MetricStatus() {
         const formData = new FormData(document.getElementById('SLAForm'));
 
-        fetch('http://localhost:80/sla/api/status', {//se si vuole avviare con docker compose e apache mettere la porta 8081
+        fetch('http://localhost:80/sla/api/status', {
             method: 'GET',
-            //body: formData
         })
             .then(response => response.json())
             .then(data => {
 
                 if (data.success) {
-                    // Creazione della stringa HTML con un elenco non ordinato
-                    //var listaHTML = "<ul>" +
-                    //    "<li>" + "current value: " + data.current_value + "</li>" +
-                    //    "<li>" + "desired value: " + data.desired_value + "</li>" +
-                    //    "<li>" + "violation: " + data.violation + "</li>" +
-                    //    "</ul>";
-                    //document.getElementById('SLAResult').innerHTML = listaHTML;
-                    //var dict = data.metrics;
                     for (var key in data.metrics) {
-                        // Verifica se la chiave è effettivamente una proprietà dell'oggetto e non ereditata
                         if (data.metrics.hasOwnProperty(key)) {
-                            // Accede al valore associato a questa chiave
                             var value = data.metrics[key];
-
-                            // Ora puoi utilizzare key e value come desideri
                             console.log("Metrica:", key, "Valore:", value);
                         }
                     }
-                    alert(data.message)
+                    alert(data.message);
                 }
                 else {
-                    console.log("sono qui");
                     alert(data.message);
                 }
             })
@@ -107,16 +90,9 @@
             .then(data => {
 
                 if (data.success) {
-                    // Creazione della stringa HTML con un elenco non ordinato
-                    //var listaHTML = "<ul>" +
-                    //    "<li>" + "current value: " + data.current_value + "</li>" +
-                    //    "<li>" + "desired value: " + data.desired_value + "</li>" +
-                    //    "<li>" + "violation: " + data.violation + "</li>" +
-                    //    "</ul>";
-                    //document.getElementById('SLAResult').innerHTML = listaHTML;
                     var status = data.status;
-                    console.log(status)
-                    alert(data.message)
+                    console.log(status);
+                    alert(data.message);
                 }
                 else {
                     alert(data.message);
@@ -139,21 +115,12 @@
             .then(data => {
 
                 if (data.success) {
-                    // Creazione della stringa HTML con un elenco non ordinato
-                    //var listaHTML = "<ul>" +
-                    //    "<li>" + "desired value: " + data.desired_value + "</li>" +
-                    //    "<li>" + "violations count last hour: " + data.violations_count_last_hour + "</li>" +
-                    //    "<li>" + "violations count last 3 hours: " + data.violations_count_last_3_hours + "</li>" +
-                    //    "<li>" + "violations count last 6 hours: " + data.violations_count_last_6_hours + "</li>" +
-                    //    "</ul>";
-                    //document.getElementById('SLAResult').innerHTML = listaHTML;
                     var violations = data.violations;
-                    console.log(violations)
-                    alert(data.message)
+                    console.log(violations);
+                    alert(data.message);
                 }
                 else {
                     alert(data.message);
-                    //document.getElementById('SLAResult').innerHTML = 'Metrica non presente nel contratto';
                 }
             })
             .catch(error => {
@@ -173,20 +140,13 @@
             .then(data => {
 
                 if (data.success) {
-                    // Creazione della stringa HTML con un elenco non ordinato
-                    //var listaHTML = "<ul>" +
-                    //    "<li>" + "desired value: " + data.desired_value + "</li>" +
-                    //    "<li>" + "violations count last hour: " + data.violations_count_last_hour + "</li>" +
-                    //    "<li>" + "violations count last 3 hours: " + data.violations_count_last_3_hours + "</li>" +
-                    //    "<li>" + "violations count last 6 hours: " + data.violations_count_last_6_hours + "</li>" +
-                    //    "</ul>";
-                    //document.getElementById('SLAResult').innerHTML = listaHTML;
                     var probability = data.probability;
-                    alert(data.message)
+                    console.log(probability);
+                    alert(data.message);
                 }
                 else {
                     alert(data.message);
-                    //document.getElementById('SLAResult').innerHTML = 'Metrica non presente nel contratto';
+
                 }
             })
             .catch(error => {

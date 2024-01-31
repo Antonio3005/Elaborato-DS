@@ -161,7 +161,7 @@ services:
       MYSQL_USER: 'an'
       MYSQL_PASSWORD: '12345'
       MYSQL_ROOT_PASSWORD: '12345'
-      KAFKA_BOOTSTRAP_SERVERS: 'kafka:9092'  # Indirizzo del broker Kafka
+      KAFKA_BOOTSTRAP_SERVERS: 'kafka:9092'
       KAFKA_GROUP: 'group'
       API_KEY: ${API_KEY}
     ports:

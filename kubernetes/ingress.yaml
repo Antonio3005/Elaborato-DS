@@ -17,7 +17,7 @@ spec:
             path: /auth(/|$)(.*)
             backend:
               service:
-                name: auth-service #nome del microservizio auth
+                name: auth-service
                 port:
                   number: 5000
 

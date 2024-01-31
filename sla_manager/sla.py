@@ -5,10 +5,8 @@ import schedule
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
-#import forecast
 from datetime import datetime, timedelta
 from arima_model import train_and_predict_arima
-
 
 app = Flask(__name__)
 CORS(app)
@@ -156,13 +154,11 @@ def get_violations():
 
 @app.route("/api/probability", methods=['POST'])
 def get_probability():
-    #try:
-        # Durata in secondi della previsione nel futuro
-
+    try:
         seconds = 21600 #6 ore
 
-        future_minutes = int(request.form['x_seconds'])
-
+        future_minutes = int(request.form['x_minutes'])
+        #lo step è di due minuti per questo divido i minuti passati per 2
         steps = int(future_minutes/2)
 
         metrics = Metrics.query.all()
@@ -171,7 +167,6 @@ def get_probability():
 
         logging.error(f"{metrics}")
 
-        # Dizionario con nome metrica e probabilità di violazione
         probability_data = {}
 
         for metric in metrics:
@@ -222,8 +217,8 @@ def get_probability():
 
         return jsonify({"success": True, "message": "Probabilità di violazione.", "probability": probability_data})
 
-    #except Exception as e:
-    #    return jsonify({"success": False, "message": "Si è verificato un errore durante l'elaborazione della richiesta."})
+    except Exception as e:
+        return jsonify({"success": False, "message": "Si è verificato un errore durante l'elaborazione della richiesta."})
 
 
 if __name__ == '__main__':
