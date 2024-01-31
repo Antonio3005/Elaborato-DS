@@ -48,4 +48,4 @@ infine, sarà possibile effettuare il deploy di tutti i microservizi restanti se
 
 **Client**   
 Per comunicare con i microservizi sla_manager,auth_service,subscription_service sono stati creati dei file html all'interno dei quali vengono eseguite richieste agli endpoint dei microservizi sopracitati.  
-Per effettuare queste richieste basta aprire il relativo file html con un qualsiasi browser.
+Per effettuare queste richieste basta aprire i relativi file .html (contenuti nella directory templates) con un qualsiasi browser.
