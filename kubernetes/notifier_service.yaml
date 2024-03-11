@@ -41,11 +41,11 @@ spec:
             - name: MAIL_USE_SSL
               value: 'True'
             - name: MAIL_USERNAME
-              value: 'angelo-cocuzza@libero.it'
+              value: 
             - name: MAIL_PASSWORD
-              value: 'Bestflights123!'
+              value: 
             - name: MAIL_DEFAULT_SENDER
-              value: 'angelo-cocuzza@libero.it'
+              value: 
           command: ["python", "-u", "notifier.py"]
 ---
 apiVersion: v1
